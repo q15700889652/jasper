@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>111</title>
+        <script src="static/js/echarts.js"></script>
+		<script src="static/js/jquery.min.js"></script>
+    </head>
+    <body>
+        <input id="url" type="hidden" size="30" value="ws://28j8345j41.zicp.vip:80/a/b" />
+        <button onclick="openWebSocket()">打开服务器连接</button>
+
+        <br/><br/>
+        <textarea id="text" type="text"></textarea>
+        <button onclick="send()">发送消息</button>
+        <hr/>
+        <button onclick="closeWebSocket()">关闭服务器连接</button>
+        <hr/>
+        <div id="message"></div>
+        
+        
+     <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+    <div id="main" style="width: 600px; height: 400px;"></div>
+        
+        
+        
+        
+    </body>
+    <script type="text/javascript">
+     　 var websocket = null;
+ 　　function openWebSocket() {
+	  var date;
+      var url = document.getElementById('url').value.trim();
+      //判断当前浏览器是否支持WebSocket
+      if ('WebSocket' in window) {
+            websocket = new WebSocket(url);
+      } else {
+            alert('当前浏览器 Not support 服务器连接')
+      }
+      //连接发生错误的回调方法
+      websocket.onerror = function() {
+            setMessageInnerHTML("服务器连接发生错误");
+      };
+      //连接成功建立的回调方法
+      websocket.onopen = function() {
+            setMessageInnerHTML("服务器连接成功");
+      }
+      //接收到消息的回调方法
+      websocket.onmessage = function(event) {
+            setMessageInnerHTML(event.data);
+      }
+      //连接关闭的回调方法
+      websocket.onclose = function() {
+            setMessageInnerHTML("服务器连接关闭");
+      }
+    }
+    //监听窗口关闭事件，当窗口关闭时，主动去关闭websocket连接，防止连接还没断开就关闭窗口，server端会抛异常。
+        window.onbeforeunload = function() {
+        closeWebSocket();
+    }
+    //将消息显示在网页上
+        function setMessageInnerHTML(innerHTML) {
+        //document.getElementById('message').innerHTML += innerHTML + '<br/>';
+      //alert("1.准备初始化echarts实例");
+        // 基于准备好的dom，初始化echarts实例
+        date=innerHTML.split(',');
+        var myChart = echarts.init(document.getElementById('main'));
+
+        // 指定图表的配置项和数据
+        var option = {
+            title: {
+                text: 'ECharts 入门示例'
+            },
+            tooltip: {},
+            legend: {
+                data:['销量']
+            },
+            xAxis: {
+                data: ["衬衫","羊毛衫","雪纺衫","裤子","高跟鞋","袜子"]
+            },
+            yAxis: {},
+            series: [{
+                name: '销量',
+                type: 'bar',
+                data: date
+            }]
+        };
+
+        //alert("2.准备指定配置项");
+        // 使用刚指定的配置项和数据显示图表。
+        myChart.setOption(option);
+
+        // 相当于 document.ready，{代码}
+        $(function(){
+            //alert("3.页面加载完毕");
+        })
+    }
+    //关闭WebSocket连接
+        function closeWebSocket() {
+        websocket.close();
+    }
+    //发送消息
+        function send() {
+        var message = document.getElementById('text').value;
+        websocket.send(message);
+    }
+  </script>
+</html>

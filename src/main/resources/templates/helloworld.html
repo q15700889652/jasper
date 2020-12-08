@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script src="static/js/jquery.min.js" charset="utf-8"></script>
+<style type='text/css'>
+.expandable .hidden {
+	display: none;
+}
+
+.expandable:active .hidden, .expandable .hidden:hover {
+	display: block;
+}
+
+.min {
+	width: 100%;
+	height: 20px;
+	background: green;
+	cursor: -moz-zoom-in;
+	cursor: -webkit-zoom-in;
+}
+
+.full {
+	width: 99%;
+	height: 200px;
+	background: #5492DE;
+	position: absolute;
+	/*  z-index: 9;/*这里是该元素与显示屏的距离，bai据说越大越好，因为没有它也是可以的*/
+	top: 1px;
+}
+</style>
+</head>
+<body>
+	
+	<form id="addForm" action="/htmlpagedata" target="myiframe">
+	<div class="expandable">
+		<div class="min"></div>
+		<div class="hidden full">
+				<br />
+				<div id="mydiv" style="text-align: center;">
+					<input name="name" type="hidden" th:value="${name}" />
+					<input id="loginUserCode" type="hidden" th:value="${name}" />
+				</div>
+				<br />
+				<div style="text-align: center; vertical-align: middle;">
+					<input type="button" onclick="dd()" value="查 询"> 
+				</div>
+		</div>
+	</div>
+	</form>
+	<div style="text-align: center; vertical-align: middle;">
+		<iframe id="myiframe" name="myiframe" width="100%" height="650px" frameborder="0"></iframe>
+	</div>
+	<script type="text/javascript">
+		$.ajax({   
+			url:'/ajax',       
+			method:'post',       
+			data:{
+			   "name":$("#loginUserCode").val()
+				},        
+			dataType:'json',         
+			success:function(res){  
+			
+			$("#mydiv").append(res.data[0].name);
+			
+			},              
+			error:function (data) {
+			}           
+		}) ;  
+	</script>
+	<script type="text/javascript">
+	function dd(){
+	 //提交之前绑定
+     document.getElementById('myiframe').onload=reload;
+     document.getElementById('addForm').submit() 
+		}
+	 function reload() {//提交之后取值
+		   //用jQuery找
+		 // console.log($(ths).contents().find('body').html())
+		    var content = this.contentWindow.document.body.innerHTML;//this代表iframe标签
+		    var obj=JSON.parse(content);//转换成json对象
+		
+		}
+</script>
+</body>
+</html>
