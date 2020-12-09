@@ -250,22 +250,45 @@ public class TestController {
 		}
 		if(null != jasperPrint.getPages()&&jasperPrint.getPages().size()>0) {
 		//
-		JRTemplatePrintText jasperPrint1=(JRTemplatePrintText) jasperPrint.getPages().get(pageIndex).getElements().get(jasperPrint.getPages().get(pageIndex).getElements().size()-6);
-		JRTemplatePrintText jasperPrint2=(JRTemplatePrintText) jasperPrint.getPages().get(pageIndex).getElements().get(jasperPrint.getPages().get(pageIndex).getElements().size()-5);
-		JRTemplatePrintText jasperPrint3=(JRTemplatePrintText) jasperPrint.getPages().get(pageIndex).getElements().get(jasperPrint.getPages().get(pageIndex).getElements().size()-4);
-		JRTemplatePrintText jasperPrint4=(JRTemplatePrintText) jasperPrint.getPages().get(pageIndex).getElements().get(jasperPrint.getPages().get(pageIndex).getElements().size()-3);
-		JRTemplatePrintText jasperPrint5=(JRTemplatePrintText) jasperPrint.getPages().get(pageIndex).getElements().get(jasperPrint.getPages().get(pageIndex).getElements().size()-2);
-		String t1=jasperPrint1.getHyperlinkReference();
-		String t2=jasperPrint2.getHyperlinkReference();
-		String t3=jasperPrint3.getHyperlinkReference();
-		String t4=jasperPrint4.getHyperlinkReference();
-		String t5=jasperPrint5.getHyperlinkReference();
-		System.out.println(t1+values);
-		jasperPrint1.setHyperlinkReference(t1+values);
-		jasperPrint2.setHyperlinkReference(t2+values);
-		jasperPrint3.setHyperlinkReference(t3+values);
-		jasperPrint4.setHyperlinkReference(t4+values);
-		jasperPrint5.setHyperlinkReference(t5+values);
+			
+			
+			List<JRPrintElement>	jasperPrint8=	jasperPrint.getPages().get(pageIndex).getElements();
+			JRTemplatePrintText jpt;
+			for (JRPrintElement e : jasperPrint8) {
+				jpt=(JRTemplatePrintText) e;
+				 if(jpt.getHyperlinkReference()!=null&&jpt.getHyperlinkReference().length()>0) {
+					 jpt.setHyperlinkReference(jpt.getHyperlinkReference()+values);
+				 }
+			}
+			
+			
+			/*
+			 * JRTemplatePrintText jasperPrint1=(JRTemplatePrintText)
+			 * jasperPrint.getPages().get(pageIndex).getElements().get(jasperPrint.getPages(
+			 * ).get(pageIndex).getElements().size()-6); JRTemplatePrintText
+			 * jasperPrint2=(JRTemplatePrintText)
+			 * jasperPrint.getPages().get(pageIndex).getElements().get(jasperPrint.getPages(
+			 * ).get(pageIndex).getElements().size()-5); JRTemplatePrintText
+			 * jasperPrint3=(JRTemplatePrintText)
+			 * jasperPrint.getPages().get(pageIndex).getElements().get(jasperPrint.getPages(
+			 * ).get(pageIndex).getElements().size()-4); JRTemplatePrintText
+			 * jasperPrint4=(JRTemplatePrintText)
+			 * jasperPrint.getPages().get(pageIndex).getElements().get(jasperPrint.getPages(
+			 * ).get(pageIndex).getElements().size()-3); JRTemplatePrintText
+			 * jasperPrint5=(JRTemplatePrintText)
+			 * jasperPrint.getPages().get(pageIndex).getElements().get(jasperPrint.getPages(
+			 * ).get(pageIndex).getElements().size()-2); String
+			 * t1=jasperPrint1.getHyperlinkReference(); String
+			 * t2=jasperPrint2.getHyperlinkReference(); String
+			 * t3=jasperPrint3.getHyperlinkReference(); String
+			 * t4=jasperPrint4.getHyperlinkReference(); String
+			 * t5=jasperPrint5.getHyperlinkReference(); System.out.println(t1+values);
+			 * jasperPrint1.setHyperlinkReference(t1+values);
+			 * jasperPrint2.setHyperlinkReference(t2+values);
+			 * jasperPrint3.setHyperlinkReference(t3+values);
+			 * jasperPrint4.setHyperlinkReference(t4+values);
+			 * jasperPrint5.setHyperlinkReference(t5+values);
+			 */
 		}
 		//缓存处理                                                                   判断是否缓存，无则缓存                                                               参数request+返回值 jasper对象    
 		//afterCaChe();             
