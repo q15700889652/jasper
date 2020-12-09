@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.ibatis.session.SqlSession;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -58,7 +59,8 @@ public class TestController {
 	private JasperExportHanld jasperExportHanld;
 	@Autowired
 	private SqlSession sqlSession;
-
+	
+	Logger logger = Logger.getLogger(TestController.class);
 	/**
 	 * pdf
 	 * 
@@ -216,7 +218,7 @@ public class TestController {
 				System.out.println(t1+values);
 				jasperPrint1.setHyperlinkReference(t1+values);
 				
-				
+				logger.info(t1);
 				
 				
 				//                                   hyperlinkReference		

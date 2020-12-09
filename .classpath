@@ -35,15 +35,5 @@
 			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="D:/mymaven/rep/net/sf/jasperreports/jasperreports/6.9.0/jasperreports-6.9.0.jar" sourcepath="D:/mymaven/rep/net/sf/jasperreports/jasperreports/6.9.0/jasperreports-6.9.0-sources.jar">
-		<attributes>
-			<attribute name="maven.pomderived" value="true"/>
-			<attribute name="org.eclipse.jst.component.archivename" value="jasperreports-6.9.0.jar"/>
-			<attribute name="maven.groupId" value="net.sf.jasperreports"/>
-			<attribute name="maven.artifactId" value="jasperreports"/>
-			<attribute name="maven.version" value="6.9.0"/>
-			<attribute name="maven.scope" value="compile"/>
-		</attributes>
-	</classpathentry>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

@@ -54,9 +54,10 @@
 		    <artifactId>log4j</artifactId>
 		    <version>1.2.17</version>
 		</dependency>
+		<!--sqlserver依赖  驱动jar-->
 		<dependency>
             <groupId>com.microsoft.sqlserver</groupId>
-            <artifactId>mssql-jdbc</artifactId><!--sqlserver依赖  驱动jar-->
+            <artifactId>mssql-jdbc</artifactId>
             <scope>runtime</scope>
             <version>6.4.0.jre8</version>
         </dependency>
@@ -66,22 +67,24 @@
             <version>4.0</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
+       <!--  <dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
 			<version>4.1.3.RELEASE</version>
-		</dependency>
+		</dependency> -->
 		<dependency>
             <groupId>org.mybatis.spring.boot</groupId>
             <artifactId>mybatis-spring-boot-starter</artifactId>
             <version>1.2.0</version>
         </dependency>
-        <dependency>
+       <!--  <dependency>
+        
 	    <groupId>junit</groupId>
 	    <artifactId>junit</artifactId>
 	    <version>3.8.1</version>
 	    <scope>test</scope>
-		</dependency>
+		</dependency> -->
+		<!--websocket-->
 		<dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-websocket</artifactId>

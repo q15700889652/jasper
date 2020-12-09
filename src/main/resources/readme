@@ -1,0 +1,8 @@
+1.集成springboot
+2.打成war包
+3.集成mybatis
+4.集成jsaper
+5.集成sqlserver
+6.集成logger
+7.集成webscoket
+8.集成thymeleaf
