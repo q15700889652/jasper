@@ -133,59 +133,44 @@ public class TestController {
 	@GetMapping("htmlpagedata")
 	public void dd(HttpServletRequest request, HttpServletResponse response, String name) {
 		
+		
+		//动态查询条件组装                                                 换算出sql查询条件的动态条件组装                                      参数request   返回值map   一个是sql的换算条件    一个是jasper动态页面需要的页码条件
+		//loadingParamters();        
 		Map<String, Object> parameters = new HashMap<String, Object>();
-		
-		//hashmap值页面封装
+		Enumeration<String> paraNames = request.getParameterNames();
+		int x = 0;
+		String str = " 1=1 ";
+		String values = "";
 		String keys = "";
-		Enumeration<String> paraNames=request.getParameterNames();
-		int x=0;
-		String str=" 1=1 ";
-		String values="";
-		for(Enumeration<String> e=paraNames;e.hasMoreElements();){
-		      String thisName=e.nextElement().toString();
-		      String thisValue=request.getParameter(thisName);
-		      System.out.println("param的key:"+thisName+"--------------param的value:"+thisValue);
-		      keys+=thisValue;
-		      parameters.put(thisName, thisValue==null?"":thisValue);
-		      if(!thisName.equals("page")) {
-			      if(x>0) {
-			    	  if(thisValue!=null && thisValue.length()>0)
-			    	  str+=" and "+thisName+"="+thisValue;
-			    	  values+="&"+thisName+"="+thisValue;
-			      }
-		      }
-		      x++;
-		   
-		}
-		System.out.println(str);
-		parameters.put("str", str);
-		
-		
-		request.getParameterMap();
-		JasperPrint jasperPrint = null;
-		Boolean cache = false;
-		// 是否存在缓存
-		Set<String> set = Cache.map.keySet();
-		for (String key : set) {
-			if (keys.equals(key)) {
-				jasperPrint = (JasperPrint) Cache.map.get(keys);
-				cache = true;
+		for (Enumeration<String> e = paraNames; e.hasMoreElements();) {
+			String thisName = e.nextElement().toString();
+			String thisValue = request.getParameter(thisName);
+			keys+=thisName+thisValue;
+			if (!thisName.equals("page")&&!thisName.equals("name")) {//刷选掉page参数
+				if (x > 0) {//刷选掉报表名称参数
+					if (thisValue != null && thisValue.length() > 0) {
+						str += " and " + thisName + "=" + thisValue;
+					    values += "&" + thisName + "=" + thisValue;
+					}
+				}
 			}
+			x++;
+
 		}
-		int pageIndex = 0;
-		int lastPageIndex = 0;
-		String pageStr = request.getParameter("page");
-
-		if (!cache) {
-
-		
-
-			// list数据源
-			/*
-			 * List<User> list = new ArrayList<User>(); for (int i = 1; i <= 50; i++) { User
-			 * users = new User(i, "name" + i); list.add(users); }
-			 */
-
+		System.out.println("sql:"+str);
+		System.out.println("values:"+values);
+		System.out.println("cache:"+keys);
+		parameters.put("str", str);
+		parameters.put("values", values);
+		parameters.put("cache", keys);
+		//判断是否存在缓存                                                 页码+查询条件组成key 判断缓存是否存在                      参数request   返回值 布尔 
+		//beforeCaChe();  
+		JasperPrint jasperPrint = null;
+		if(!Cache.beforeCaChe(parameters.get("cache").toString())) 
+		//加载Jasper                编译好的jasper文件对象                                                      参数name     返回值 jasper对象                         
+		//loaddingJasper(); 
+		{
+			
 			String JasperAddress = "/jaspermodel/";
 			String saveaddress = "D:\\";	
 			String filename = saveaddress + name + ".jasper";
@@ -210,37 +195,37 @@ public class TestController {
 
 				jasperPrint = JasperFillManager.fillReport(saveaddress + name + ".jasper", parameters, ob);
 				
-				//
-				JRTemplatePrintText jasperPrint1=(JRTemplatePrintText) jasperPrint.getPages().get(pageIndex).getElements().get(jasperPrint.getPages().get(pageIndex).getElements().size()-5);
-				//JROrigin t4=jasperPrint1.getPropertiesMap()
-				JRPropertiesMap t5=jasperPrint1.getPropertiesMap();
-				String t1=jasperPrint1.getHyperlinkReference();
-				System.out.println(t1+values);
-				jasperPrint1.setHyperlinkReference(t1+values);
 				
-				logger.info(t1);
-				
-				
-				//                                   hyperlinkReference		
-				ModeEnum t2=jasperPrint1.getOwnModeValue();
-				JRPropertiesHolder t3=jasperPrint1.getParentProperties();
-				// 放入缓存
-				Set<String> setend = Cache.map.keySet();
-				if (Cache.map.keySet().size() == 0) {
-					Cache.map.put(keys, jasperPrint);
-				}
-				for (String key : setend) {
-					if (!keys.equals(key)) {
-						Cache.map.put(keys, jasperPrint);
-					}
-				}
 			} catch (Exception e) {
 				//e.printStackTrace();
 			}
+			
+			
+			
+			
+		}else {
+			jasperPrint=(JasperPrint) Cache.map.get(parameters.get("cache").toString());
 		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		//加载Jasper页码                                              jasper动态条件页码是取决于查询条件的参数               参数jasper动态页面需要的页码条件+返回值 jasper对象                     返回值jasper对象
+		//loaddingJasperPage();
+		int pageIndex = 0;
+		int lastPageIndex = 0;
+		String pageStr = request.getParameter("page");
+
 
 		if (null != jasperPrint.getPages()) {
-			lastPageIndex = jasperPrint.getPages().size() - 1;
+			
+				lastPageIndex = jasperPrint.getPages().size() - 1;
+			
 		}
 		if (null == pageStr) {
 			pageStr = "0";
@@ -263,7 +248,30 @@ public class TestController {
 		if (pageIndex > lastPageIndex) {
 			pageIndex = lastPageIndex;
 		}
-		
+		if(null != jasperPrint.getPages()&&jasperPrint.getPages().size()>0) {
+		//
+		JRTemplatePrintText jasperPrint1=(JRTemplatePrintText) jasperPrint.getPages().get(pageIndex).getElements().get(jasperPrint.getPages().get(pageIndex).getElements().size()-6);
+		JRTemplatePrintText jasperPrint2=(JRTemplatePrintText) jasperPrint.getPages().get(pageIndex).getElements().get(jasperPrint.getPages().get(pageIndex).getElements().size()-5);
+		JRTemplatePrintText jasperPrint3=(JRTemplatePrintText) jasperPrint.getPages().get(pageIndex).getElements().get(jasperPrint.getPages().get(pageIndex).getElements().size()-4);
+		JRTemplatePrintText jasperPrint4=(JRTemplatePrintText) jasperPrint.getPages().get(pageIndex).getElements().get(jasperPrint.getPages().get(pageIndex).getElements().size()-3);
+		JRTemplatePrintText jasperPrint5=(JRTemplatePrintText) jasperPrint.getPages().get(pageIndex).getElements().get(jasperPrint.getPages().get(pageIndex).getElements().size()-2);
+		String t1=jasperPrint1.getHyperlinkReference();
+		String t2=jasperPrint2.getHyperlinkReference();
+		String t3=jasperPrint3.getHyperlinkReference();
+		String t4=jasperPrint4.getHyperlinkReference();
+		String t5=jasperPrint5.getHyperlinkReference();
+		System.out.println(t1+values);
+		jasperPrint1.setHyperlinkReference(t1+values);
+		jasperPrint2.setHyperlinkReference(t2+values);
+		jasperPrint3.setHyperlinkReference(t3+values);
+		jasperPrint4.setHyperlinkReference(t4+values);
+		jasperPrint5.setHyperlinkReference(t5+values);
+		}
+		//缓存处理                                                                   判断是否缓存，无则缓存                                                               参数request+返回值 jasper对象    
+		//afterCaChe();             
+		Cache.afterCaChe(parameters.get("cache").toString(), jasperPrint);
+		//html 展示                                                          展示方式                                                                                               参数response+返回值 jasper对象        
+		//showHtml();		
 		try {
 			// 将html输出到浏览器上
 			HtmlExporter exporterHTML = new HtmlExporter();
