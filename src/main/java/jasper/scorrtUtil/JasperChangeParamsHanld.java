@@ -102,10 +102,10 @@ public class JasperChangeParamsHanld extends JasperExportHanld implements Params
 		for (Enumeration<String> e = paraNames; e.hasMoreElements();) {
 			String thisName = e.nextElement().toString();
 			String thisValue = request.getParameter(thisName);
-			keys+=thisValue;
-			if (!thisName.equals("page")) {//刷选掉page参数
+			keys+=thisName+thisValue;
+			if (!thisName.equals("page")&&!thisName.equals("name")) {//刷选掉page参数
 				if (x > 0) {//刷选掉报表名称参数
-					if (thisValue != null && thisValue.length() > 0) {
+					if (thisValue != null && thisValue.trim().length() > 0) {
 						str += " and " + thisName + "=" + thisValue;
 					    values += "&" + thisName + "=" + thisValue;
 					}
@@ -116,6 +116,9 @@ public class JasperChangeParamsHanld extends JasperExportHanld implements Params
 		parameters.put("str", str);//动态sql
 		parameters.put("values", values);//动态页面参数的
 		parameters.put("keys", keys);//缓存的key
+		System.out.println("str:"+ str);
+		System.out.println("values:"+ values);
+		System.out.println("keys:"+ keys);
 		parments=(HashMap<String, Object>) parameters;
 		super.values=values;
 		return parameters;

@@ -134,9 +134,10 @@ public class TestController {
 	@GetMapping("htmlpagedata")
 	public void dd(HttpServletRequest request, HttpServletResponse response, String name) {
 		//JasperChangeParamsHanld jcph=(JasperChangeParamsHanld) jasperExportHanld;
+		System.out.println("123");
 		JasperExportHanld jasperExportHanld=new JasperChangeParamsHanld();
 		
-		Connection ob;
+		Connection ob = null;
 		try {
 			ob = sqlSession.getConfiguration().getEnvironment().getDataSource().getConnection();
 		
@@ -146,10 +147,17 @@ public class TestController {
 			jasperExportHanld.setJasperDate(new JasperSourceDataByJdbc(ob));// 读取数据方式
 			jasperExportHanld.setJasperExport(new JasperExportByHtml());// 展示数据方式
 			jasperExportHanld.start();
-		
+			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}finally {
+			Cache.flag=0;
+			try {
+				ob.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
 		
 		

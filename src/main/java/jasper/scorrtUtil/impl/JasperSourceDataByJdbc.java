@@ -1,6 +1,7 @@
 package jasper.scorrtUtil.impl;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.HashMap;
 
 import jasper.scorrtUtil.JasperSourceData;
@@ -25,6 +26,13 @@ public class JasperSourceDataByJdbc implements JasperSourceData {
 			jasperPrint = JasperFillManager.fillReport(name, parments==null?new HashMap<String, Object>():parments , coon);
 		} catch (JRException e) {
 			e.printStackTrace();
+		}finally {
+			try {
+				coon.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		return jasperPrint;
 	}
