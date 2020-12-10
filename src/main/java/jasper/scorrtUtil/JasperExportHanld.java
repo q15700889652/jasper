@@ -1,6 +1,7 @@
 package jasper.scorrtUtil;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -18,9 +19,9 @@ public abstract class JasperExportHanld {
 	// 文件名称
 	protected String name;
 	// 获取文件位置
-	protected String jasperAddress;
+	protected String jasperAddress="/jaspermodel/";
 	// 保存编译好的文件地址
-	protected String saveaddress;
+	protected String saveaddress="D:\\";
 	// jasper对象
 	protected JasperPrint jasperPrint;
 	// 数据封装
@@ -31,17 +32,20 @@ public abstract class JasperExportHanld {
 	private JasperSourceData jasperDate;
 	// 装载
 	//private Jasperloding jasperloding;
-	private HashMap<String, Object> parments;
+	protected HashMap<String, Object> parments;
 	// 导出
 	private JasperExport jasperExport;
 	// web断需要的参数
 	protected HttpServletRequest request;
 	protected HttpServletResponse response;
-
+	
+	protected String values;
+	
+	protected int index;
 	/**
 	 * 解析
 	 */
-	void analysis() {
+	public void analysis() {
 		jasperAnalysis = new JasperAnalysisImpl();
 		jasperAnalysis.Analysis(this.name, this.jasperAddress, this.saveaddress);
 	}
@@ -56,15 +60,15 @@ public abstract class JasperExportHanld {
 	/**
 	 * 装载
 	 */
-	void loding() {
+	public void loding() {
 		this.jasperPrint = this.jasperDate.sourceData("D:\\"+name + ".jasper", parments, ob);
 	}
 
 	/**
 	 * 导出
 	 */
-	void Export() {
-		jasperExport.export(this.jasperPrint, this.request, this.response);
+	public void Export() {
+		jasperExport.export(this.jasperPrint, this.request, this.response,index);
 	}
 
 	/**
@@ -113,6 +117,66 @@ public abstract class JasperExportHanld {
 
 	public void setJasperExport(JasperExport jasperExport) {
 		this.jasperExport = jasperExport;
+	}
+
+	public JasperPrint getJasperPrint() {
+		return jasperPrint;
+	}
+
+	public void setJasperPrint(JasperPrint jasperPrint) {
+		this.jasperPrint = jasperPrint;
+	}
+
+	public JasperAnalysis getJasperAnalysis() {
+		return jasperAnalysis;
+	}
+
+	public void setJasperAnalysis(JasperAnalysis jasperAnalysis) {
+		this.jasperAnalysis = jasperAnalysis;
+	}
+
+	public String getValues() {
+		return values;
+	}
+
+	public void setValues(String values) {
+		this.values = values;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public String getJasperAddress() {
+		return jasperAddress;
+	}
+
+	public String getSaveaddress() {
+		return saveaddress;
+	}
+
+	public Object getOb() {
+		return ob;
+	}
+
+	public JasperSourceData getJasperDate() {
+		return jasperDate;
+	}
+
+	public HashMap<String, Object> getParments() {
+		return parments;
+	}
+
+	public JasperExport getJasperExport() {
+		return jasperExport;
+	}
+
+	public HttpServletRequest getRequest() {
+		return request;
+	}
+
+	public HttpServletResponse getResponse() {
+		return response;
 	}
 
 }

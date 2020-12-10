@@ -11,7 +11,7 @@ import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
 
 public class JasperExportByPdf implements JasperExport {
 
-	public void export(JasperPrint jasperPrint, HttpServletRequest request, HttpServletResponse response) {
+	public void export(JasperPrint jasperPrint, HttpServletRequest request, HttpServletResponse response,int index) {
 		JRPdfExporter exporter = new JRPdfExporter();
 		try {
 			response.setContentType("application/pdf");

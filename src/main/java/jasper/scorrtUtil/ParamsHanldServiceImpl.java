@@ -11,7 +11,7 @@ import java.util.Map;
  * 加工动态分页
  * 加工缓存key
  */
-public class ParamsHanld extends JasperExportHanld {
+public class ParamsHanldServiceImpl extends JasperExportHanld implements ParamsHanldService{
 	
 	private Map<String, Object> parameters;
 	/**
@@ -21,7 +21,7 @@ public class ParamsHanld extends JasperExportHanld {
 	 * 动态分页条件: 当以这个条件查询的时候  报表会动态的从新租住装分页的条件参数  -> ?page=3&value1=1&value2=2......            
 	 * @return 
 	 */
-	Map<String, Object> loadingChangeParams() {
+	public Map<String, Object> loadingChangeParams() {
 		parameters = new HashMap<String, Object>();
 		Enumeration<String> paraNames = request.getParameterNames();
 		int x = 0;
@@ -34,9 +34,10 @@ public class ParamsHanld extends JasperExportHanld {
 			keys+=thisValue;
 			if (!thisName.equals("page")) {//刷选掉page参数
 				if (x > 0) {//刷选掉报表名称参数
-					if (thisValue != null && thisValue.length() > 0)
+					if (thisValue != null && thisValue.length() > 0) {
 						str += " and " + thisName + "=" + thisValue;
 					    values += "&" + thisName + "=" + thisValue;
+					}
 				}
 			}
 			x++;
@@ -44,13 +45,15 @@ public class ParamsHanld extends JasperExportHanld {
 		parameters.put("str", str);//动态sql
 		parameters.put("values", values);//动态页面参数的
 		parameters.put("keys", keys);//缓存的key
+		parments=(HashMap<String, Object>) parameters;
+		super.values=values;
 		return parameters;
 	};
 	
 	/**
 	 * 固定的条件查询
 	 */
-	Map<String, Object> loadingFixedParams() {
+	public Map<String, Object> loadingFixedParams() {
 		parameters = new HashMap<String, Object>();
 		String keys = "";
 		Enumeration<String> paraNames = request.getParameterNames();

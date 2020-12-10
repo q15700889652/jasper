@@ -58,9 +58,9 @@ public class HelloController {
 		if(name.equals("R-HBM-007")) {
 			model.setName("staffNo : <input type='text' name='staffNo' id='staffNo'/>");
 		}else {
-			model.setName("ID : <input type='text' name='id' id='id'/> <br/> AGE : <input type='text' name='age' id='age'/>");
+			model.setName("ID : <input type='text' name='id' id='id'/> AGE : <input type='text' name='age' id='age'/>");
 		}
-		list.add(model);	
+		list.add(model);
 		map.put("data", list);
 		return map;
 	}

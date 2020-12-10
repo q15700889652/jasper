@@ -15,21 +15,27 @@ import net.sf.jasperreports.web.util.WebHtmlResourceHandler;
 
 public class JasperExportByHtml implements JasperExport {
 
-	public void export(JasperPrint jasperPrint, HttpServletRequest request, HttpServletResponse response) {
+	public void export(JasperPrint jasperPrint, HttpServletRequest request, HttpServletResponse response,int index) {
 		try {
-			HtmlExporter exporterHTML = new HtmlExporter();
-			SimpleExporterInput exporterInput = new SimpleExporterInput(jasperPrint);
-			exporterHTML.setExporterInput(exporterInput);
-			SimpleHtmlExporterOutput exporterOutput;
-			exporterOutput = new SimpleHtmlExporterOutput(response.getOutputStream());
-			exporterOutput.setImageHandler(new WebHtmlResourceHandler("image?image={0}"));
-			
-			exporterHTML.setExporterOutput(exporterOutput);
-			SimpleHtmlReportConfiguration reportExportConfiguration = new SimpleHtmlReportConfiguration();
-			reportExportConfiguration.setWhitePageBackground(false);
-			reportExportConfiguration.setRemoveEmptySpaceBetweenRows(true);
-			exporterHTML.setConfiguration(reportExportConfiguration);
-			exporterHTML.exportReport();
+			// 将html输出到浏览器上
+						HtmlExporter exporterHTML = new HtmlExporter();
+						// 分页
+
+						SimpleExporterInput exporterInput = new SimpleExporterInput(jasperPrint);
+						exporterHTML.setExporterInput(exporterInput);
+						SimpleHtmlExporterOutput exporterOutput;
+
+						exporterOutput = new SimpleHtmlExporterOutput(response.getOutputStream());
+
+						exporterOutput.setImageHandler(new WebHtmlResourceHandler("image?image={0}"));
+
+						exporterHTML.setExporterOutput(exporterOutput);
+						SimpleHtmlReportConfiguration reportExportConfiguration = new SimpleHtmlReportConfiguration();
+						reportExportConfiguration.setWhitePageBackground(false);
+						reportExportConfiguration.setRemoveEmptySpaceBetweenRows(true);
+						reportExportConfiguration.setPageIndex(index);
+						exporterHTML.setConfiguration(reportExportConfiguration);
+						exporterHTML.exportReport();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
