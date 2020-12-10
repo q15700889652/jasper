@@ -74,17 +74,23 @@ public class JasperChangeParamsHanld extends JasperExportHanld implements Params
 		if (pageIndex > lastPageIndex) {
 			pageIndex = lastPageIndex;
 		}
-		if(null != jasperPrint.getPages()&&jasperPrint.getPages().size()>0&&y==0) {//缓存中的模板存在页码换算，将不再进入计算
-		//
-			List<JRPrintElement>	jasperPrint8=	jasperPrint.getPages().get(pageIndex).getElements();
-			JRTemplatePrintText jpt;
-			for (JRPrintElement e : jasperPrint8) {
-				jpt=(JRTemplatePrintText) e;
-				 if(jpt.getHyperlinkReference()!=null&&jpt.getHyperlinkReference().length()>0) {
-					 jpt.setHyperlinkReference(jpt.getHyperlinkReference()+values);
-				 }
+		
+		try {
+			if(null != jasperPrint.getPages()&&jasperPrint.getPages().size()>0&&y==0) {//缓存中的模板存在页码换算，将不再进入计算
+			//
+				List<JRPrintElement>	jasperPrint8=	jasperPrint.getPages().get(pageIndex).getElements();
+				JRTemplatePrintText jpt;
+				for (JRPrintElement e : jasperPrint8) {
+					jpt=(JRTemplatePrintText) e;
+					 if(jpt.getHyperlinkReference()!=null&&jpt.getHyperlinkReference().length()>0) {
+						 jpt.setHyperlinkReference(jpt.getHyperlinkReference()+values);
+					 }
+				}
+				
 			}
-			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		
 		index=pageIndex;

@@ -3,6 +3,7 @@ package jasper.scorrtUtil.impl;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import jasper.scorrtUtil.JasperExport;
 import net.sf.jasperreports.engine.JRExporterParameter;
@@ -11,11 +12,12 @@ import net.sf.jasperreports.engine.export.HtmlExporter;
 import net.sf.jasperreports.export.SimpleExporterInput;
 import net.sf.jasperreports.export.SimpleHtmlExporterOutput;
 import net.sf.jasperreports.export.SimpleHtmlReportConfiguration;
+import net.sf.jasperreports.j2ee.servlets.ImageServlet;
 import net.sf.jasperreports.web.util.WebHtmlResourceHandler;
 
 public class JasperExportByHtml implements JasperExport {
 
-	public void export(JasperPrint jasperPrint, HttpServletRequest request, HttpServletResponse response,int index) {
+	public void export(JasperPrint jasperPrint, HttpServletRequest request, HttpServletResponse response,int index,HttpSession session) {
 		try {
 			// 将html输出到浏览器上
 						HtmlExporter exporterHTML = new HtmlExporter();
@@ -26,9 +28,10 @@ public class JasperExportByHtml implements JasperExport {
 						SimpleHtmlExporterOutput exporterOutput;
 
 						exporterOutput = new SimpleHtmlExporterOutput(response.getOutputStream());
-
+						session.setAttribute(
+								ImageServlet.DEFAULT_JASPER_PRINT_SESSION_ATTRIBUTE,
+								jasperPrint);
 						exporterOutput.setImageHandler(new WebHtmlResourceHandler("image?image={0}"));
-
 						exporterHTML.setExporterOutput(exporterOutput);
 						SimpleHtmlReportConfiguration reportExportConfiguration = new SimpleHtmlReportConfiguration();
 						reportExportConfiguration.setWhitePageBackground(false);
@@ -36,6 +39,9 @@ public class JasperExportByHtml implements JasperExport {
 						reportExportConfiguration.setPageIndex(index);
 						exporterHTML.setConfiguration(reportExportConfiguration);
 						exporterHTML.exportReport();
+						
+						
+						
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

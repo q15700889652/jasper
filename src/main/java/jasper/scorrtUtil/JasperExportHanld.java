@@ -5,6 +5,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import jasper.scorrtUtil.impl.JasperAnalysisImpl;
 import net.sf.jasperreports.engine.JasperPrint;
@@ -38,6 +39,7 @@ public abstract class JasperExportHanld {
 	// web断需要的参数
 	protected HttpServletRequest request;
 	protected HttpServletResponse response;
+	protected HttpSession session;
 	
 	protected String values;
 	
@@ -68,7 +70,7 @@ public abstract class JasperExportHanld {
 	 * 导出
 	 */
 	public void Export() {
-		jasperExport.export(this.jasperPrint, this.request, this.response,index);
+		jasperExport.export(this.jasperPrint, this.request, this.response,index,session);
 	}
 
 	/**
@@ -179,4 +181,20 @@ public abstract class JasperExportHanld {
 		return response;
 	}
 
+	public HttpSession getSession() {
+		return session;
+	}
+
+	public void setSession(HttpSession session) {
+		this.session = session;
+	}
+
+	public int getIndex() {
+		return index;
+	}
+
+	public void setIndex(int index) {
+		this.index = index;
+	}
+	
 }

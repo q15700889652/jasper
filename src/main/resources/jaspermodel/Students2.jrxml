@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Students2" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="8dcb3c1f-33aa-4d00-9858-a39b060c28f7">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyDbTest"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<parameter name="str" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select
+
+
+
+id,
+name,
+age,
+dept,date
+
+from lntest where $P!{str}]]>
+	</queryString>
+	<field name="id" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.label" value="id"/>
+	</field>
+	<field name="name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="name"/>
+	</field>
+	<field name="age" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.label" value="age"/>
+	</field>
+	<field name="dept" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="dept"/>
+	</field>
+	<field name="date" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.label" value="date"/>
+	</field>
+	<group name="Group1">
+		<groupHeader>
+			<band height="300">
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<barChart>
+					<chart evaluationTime="Report">
+						<reportElement x="30" y="0" width="750" height="300" uuid="6f1fe4bf-a5e9-46d7-9d43-2c4b3314e1a4"/>
+						<chartTitle/>
+						<chartSubtitle/>
+						<chartLegend/>
+					</chart>
+					<categoryDataset>
+						<categorySeries>
+							<seriesExpression><![CDATA[$F{name}]]></seriesExpression>
+							<categoryExpression><![CDATA[$F{name}]]></categoryExpression>
+							<valueExpression><![CDATA[$F{age}]]></valueExpression>
+						</categorySeries>
+					</categoryDataset>
+					<barPlot>
+						<plot/>
+						<itemLabel/>
+						<categoryAxisFormat>
+							<axisFormat labelColor="#000000" tickLabelColor="#000000" axisLineColor="#000000"/>
+						</categoryAxisFormat>
+						<valueAxisFormat>
+							<axisFormat labelColor="#000000" tickLabelColor="#000000" axisLineColor="#000000"/>
+						</valueAxisFormat>
+					</barPlot>
+				</barChart>
+			</band>
+		</groupHeader>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="30" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<textField>
+				<reportElement x="-19" y="0" width="840" height="30" uuid="52f50811-9412-479f-a3b9-c2c908fb7d48">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="16"/>
+				</textElement>
+				<textFieldExpression><![CDATA["echart"]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+</jasperReport>

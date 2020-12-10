@@ -13,6 +13,7 @@ import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.apache.ibatis.session.SqlSession;
 import org.apache.log4j.Logger;
@@ -132,7 +133,7 @@ public class TestController {
 	}
 
 	@GetMapping("htmlpagedata")
-	public void dd(HttpServletRequest request, HttpServletResponse response, String name) {
+	public void dd(HttpServletRequest request, HttpServletResponse response, HttpSession session,String name) {
 		//JasperChangeParamsHanld jcph=(JasperChangeParamsHanld) jasperExportHanld;
 		System.out.println("123");
 		JasperExportHanld jasperExportHanld=new JasperChangeParamsHanld();
@@ -144,6 +145,7 @@ public class TestController {
 			jasperExportHanld.setName(name); // 文件名称
 			jasperExportHanld.setRequest(request);
 			jasperExportHanld.setResponse(response);
+			jasperExportHanld.setSession(session);
 			jasperExportHanld.setJasperDate(new JasperSourceDataByJdbc(ob));// 读取数据方式
 			jasperExportHanld.setJasperExport(new JasperExportByHtml());// 展示数据方式
 			jasperExportHanld.start();

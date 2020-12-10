@@ -2,6 +2,7 @@ package jasper.scorrtUtil.impl;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import jasper.scorrtUtil.JasperExport;
 import net.sf.jasperreports.engine.JasperPrint;
@@ -11,7 +12,7 @@ import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
 
 public class JasperExportByPdf implements JasperExport {
 
-	public void export(JasperPrint jasperPrint, HttpServletRequest request, HttpServletResponse response,int index) {
+	public void export(JasperPrint jasperPrint, HttpServletRequest request, HttpServletResponse response,int index,HttpSession session) {
 		JRPdfExporter exporter = new JRPdfExporter();
 		try {
 			response.setContentType("application/pdf");
