@@ -44,6 +44,9 @@
 				<br />
 				<div style="text-align: center; vertical-align: middle;">
 					<input type="button" onclick="dd()" value="查 询"> 
+					<br/>
+					<br/>
+					<input type="button" value="PDF导出"> <input type="button" value="WODR导出"> <input type="button" value="EXCEL导出"> 
 				</div>
 		</div>
 	</div>
@@ -78,7 +81,7 @@
 		   //用jQuery找
 		 // console.log($(ths).contents().find('body').html())
 		    var content = this.contentWindow.document.body.innerHTML;//this代表iframe标签
-		    var obj=JSON.parse(content);//转换成json对象
+		    //var obj=JSON.parse(content);//转换成json对象
 		
 		}
 </script>

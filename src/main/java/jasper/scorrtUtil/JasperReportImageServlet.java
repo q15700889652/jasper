@@ -2,8 +2,10 @@ package jasper.scorrtUtil;
 
 import javax.servlet.annotation.WebServlet;
 
+import net.sf.jasperreports.j2ee.servlets.ImageServlet;
+
 @WebServlet(name="FirstServlet",urlPatterns="/image")
-public class JasperReportImageServlet extends net.sf.jasperreports.j2ee.servlets.ImageServlet  {
+public class JasperReportImageServlet extends ImageServlet  {//sessiongettest
 
 	/**
 	 * 
