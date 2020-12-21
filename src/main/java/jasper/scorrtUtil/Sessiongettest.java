@@ -10,6 +10,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import jasper.scorrtUtil.JasperScorrt.caChe.Cache;
 import net.sf.jasperreports.engine.JRConstants;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRPrintImage;
@@ -28,7 +29,7 @@ import net.sf.jasperreports.renderers.ResourceRenderer;
 import net.sf.jasperreports.renderers.util.RendererUtil;
 import net.sf.jasperreports.repo.RepositoryUtil;
 
-public class sessiongettest extends BaseHttpServlet{
+public class Sessiongettest extends BaseHttpServlet{
 	private static final long serialVersionUID = JRConstants.SERIAL_VERSION_UID;
 
 
@@ -62,12 +63,13 @@ public class sessiongettest extends BaseHttpServlet{
 		}
 		else
 		{	
-			System.out.println(Cache.map.get("sessiontest")+"-------+++++");
-			System.out.println("request:"+request.getParameterMap().toString());
-			//session 丢失问题
-			request.getSession().setAttribute(
-					ImageServlet.DEFAULT_JASPER_PRINT_SESSION_ATTRIBUTE,
-					(JasperPrint)Cache.map.get(request.getParameterMap().toString()));
+			/*
+			 * System.out.println(Cache.map.get("sessiontest")+"-------+++++");
+			 * System.out.println("request:"+request.getParameterMap().toString());
+			 * //session 丢失问题 request.getSession().setAttribute(
+			 * ImageServlet.DEFAULT_JASPER_PRINT_SESSION_ATTRIBUTE,
+			 * (JasperPrint)Cache.map.get(request.getParameterMap().toString()));
+			 */
 			List<JasperPrint> jasperPrintList = BaseHttpServlet.getJasperPrintList(request);
 			
 			if (jasperPrintList == null)

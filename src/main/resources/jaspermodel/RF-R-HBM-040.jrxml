@@ -1,0 +1,975 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="RF-R-HBM-040" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="80c34080-f201-4eef-961a-4357a16e2f0e">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="GSData"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.report.description" value=""/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="209"/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="787"/>
+	<parameter name="staffNo" class="java.lang.String"/>
+	<parameter name="contactPerson" class="java.lang.String"/>
+	<parameter name="signer" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[--2.28	R-HBM-031 Letter - 特別配額申請公屋及遷離部門宿舍(Retired)(有RA) + 同意書(Chinese)
+with contact(name, name_c, post_mobile, post_talno) as (
+--15. st.Name
+select ST.NAME, st.chinese name_c, ep.POST_MOBILE, ep.post_telno
+from posting_now pn inner join staff st on pn.STAFF_NO = st.STAFF_NO and (st.UPDATE_MODE is null or st.UPDATE_MODE <> 'D')
+left outer join esm_post ep on pn.POST_ID = ep.post_id and ep.status = 'A'
+where 
+-- ISNULL(duties_X,ISNULL(duties_T,'')) = 'CO(Q&S)' and 
+pn.staff_no =  $P{contactPerson} ),
+inst_contact(name, name_c, contact_person, contact_person_c) as (
+--16.st.name, 17.Head of Institution of the quartering office
+select ST.NAME, st.chinese name_c, hoi.CONTACT_PERSON, hoi.C_INSTITUTION_CONTACT_PERSON contact_person_c
+from posting_now pn 
+inner join staff st on pn.STAFF_NO = st.STAFF_NO 
+	and (st.UPDATE_MODE is null or st.UPDATE_MODE <> 'D')
+inner join HEAD_OF_INSTITUTION hoi on 
+	ISNULL(EXACT_INST,ISNULL(INST_R,ISNULL(INST_X,ISNULL(INST_T,'')))) = hoi.INSTITUTION COLLATE SQL_Latin1_General_CP1_CI_AS
+where 
+-- ISNULL(duties_X,ISNULL(duties_T,'')) = 'CO(Q&S)' and 
+pn.staff_no =  $P{staffNo} ),
+
+signer(name_c) as (
+select st.chinese name_c  from staff st 
+inner join posting_now pn on st.STAFF_NO = pn.STAFF_NO
+where 
+--ISNULL(duties_X,ISNULL(duties_T,'')) = 'EO(P)1' and 
+st.staff_no =  $P{signer} )
+
+select 
+a.staff_no, a.ctitle, a.chinese, a.surname_c, a.cPost,
+(select chinese from ranks r where r.rankabbr = a.rankabbr) rank, 
+b.ha_letter_date, 
+b.sign_tncy_agm_date, b.sign_tncy_agm_date2, 
+b.ptqaddress, b.phaddress,
+(select name_c from contact) as q_officer,
+(select name_c from signer) as signer, 
+(select name_c from inst_contact) as cc_1,
+(select contact_person_c from inst_contact) as cc_2,
+b.year, b.code
+from (
+--1.cPost, 2,21.rankabbr, 3.staffNo, 4,20. chinese, 5.ctitle
+SELECT st.staff_no, st.rankabbr, sn.chinese_surname surname_c,
+case when st.sex = 'M' then N'先生' else N'女士' end ctitle,
+concat(ISNULL(EXACT_INST,ISNULL(INST_R,ISNULL(INST_X,ISNULL(INST_T,'')))) , '/',
+ISNULL(section_R,ISNULL(section_X,ISNULL(section_T,''))), '/', ISNULL(duties_X,ISNULL(duties_T,'')))
+AS cPost, st.chinese FROM staff st 
+left outer join POSTING_NOW pn on st.STAFF_NO = pn.STAFF_NO
+left outer join staff_name sn on st.staff_no = sn.staff_no
+where st.STAFF_NO =  $P{staffNo} ) a 
+left join (
+--8. ha_letter_date, 9,12,19.address, 10.SIGN_TNCY_AGM_DATE, 11,14.SIGN_TNCY_AGM_DATE2
+--13 is unknown
+select top 1 ha.staff_no, concat(flat, floor, room, block, house, building, qa.ESTATE, tower, street, qa.DISTRICT, region) as ptqaddress, 
+ha.ha_letter_date,
+st.CHINESE, case when st.sex = 'M' then N'先生' else N'女士' end ctitle, 
+ha.year, hb.quarters_code code,  hb.ADDRESS as phAddress, hhc.SIGN_TNCY_AGM_DATE, 
+dateadd(month, 2, hhc.SIGN_TNCY_AGM_DATE) as SIGN_TNCY_AGM_DATE2
+from HOUSING_APP ha 
+inner join staff st on ha.STAFF_NO = st.STAFF_NO 
+inner join housing_benefit hb on ha.STAFF_NO = hb.STAFF_NO 
+--and hb.BENEFIT = 'PH'
+inner join hbm_hb_csph hhc on hhc.BENEFIT_ID = hb.RECORD_ID
+inner join personal p on st.STAFF_NO = p.STAFF_NO
+inner join staff_Name sn on st.STAFF_NO = sn.staff_no
+inner join csdqas..quarters_user qu on ha.STAFF_NO = qu.STAFF_NO 
+--and qu.DATE_OUT is null and (qu.DELFLAG is null or qu.DELFLAG <> 'D')
+inner join csdqas..quarters q on qu.code = q.code 
+--and q.type in ('J', 'O') and (q.DELFLAG is null or q.DELFLAG <> 'D')
+inner join QASMGR..QUARTERS_ADDRESS qa on q.code = qa.code
+where upper(quotas) = 'SPECIAL' and CANCEL_CODE = 20 and (st.UPDATE_MODE is null or st.UPDATE_MODE <> 'D')
+--and exists (select * from HOUSING_BENEFIT hb where BENEFIT = 'RA' and hb.STAFF_NO = ha.staff_no)
+and ha.staff_no =  $P{staffNo} ) b on  a.staff_no = b.staff_no]]>
+	</queryString>
+	<field name="staff_no" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="staff_no"/>
+	</field>
+	<field name="ctitle" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="ctitle"/>
+	</field>
+	<field name="chinese" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="chinese"/>
+	</field>
+	<field name="surname_c" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="surname_c"/>
+	</field>
+	<field name="cPost" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="cPost"/>
+	</field>
+	<field name="rank" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="rank"/>
+	</field>
+	<field name="ha_letter_date" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.label" value="ha_letter_date"/>
+	</field>
+	<field name="sign_tncy_agm_date" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.label" value="sign_tncy_agm_date"/>
+	</field>
+	<field name="sign_tncy_agm_date2" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.label" value="sign_tncy_agm_date2"/>
+	</field>
+	<field name="ptqaddress" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="ptqaddress"/>
+	</field>
+	<field name="phaddress" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="phaddress"/>
+	</field>
+	<field name="q_officer" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="q_officer"/>
+	</field>
+	<field name="signer" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="signer"/>
+	</field>
+	<field name="cc_1" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="cc_1"/>
+	</field>
+	<field name="cc_2" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="cc_2"/>
+	</field>
+	<field name="year" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="year"/>
+	</field>
+	<field name="code" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.label" value="code"/>
+	</field>
+	<group name="Group1">
+		<groupExpression><![CDATA[$F{chinese}]]></groupExpression>
+		<groupHeader>
+			<band height="620">
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<textField>
+					<reportElement x="65" y="42" width="300" height="20" uuid="b123dad5-24b8-46af-a688-3081da200f6a">
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<textElement>
+						<font fontName="SansSerif" size="13"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{cPost} == null ? "Current Posting" : $F{cPost}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="65" y="62" width="300" height="20" uuid="e5226f2e-c55d-4e38-a827-9555d150d439">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<textElement>
+						<font fontName="SansSerif" size="13"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($F{rank} == null ? "" : $F{rank})+" " + ($F{staff_no} == null ? "" : Integer.parseInt($F{staff_no}))]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="65" y="112" width="300" height="20" uuid="0fec1a86-334c-426e-930a-aeb120c589eb">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<textElement>
+						<font fontName="SansSerif" size="13"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($F{surname_c} ==  null ? ($F{chinese} == null ? "" : $F{chinese}) : $F{surname_c}) + (($F{surname_c} == null && $F{chinese} ==null) ? "" : $F{ctitle})]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="65" y="82" width="300" height="20" uuid="a567cb38-88df-4581-ab9a-8bdfb9186397">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<textElement>
+						<font fontName="SansSerif" size="13"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($F{chinese} ==  null ? "" : $F{chinese}) + ($F{chinese} ==  null ? "" : $F{ctitle})]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="60" y="143" width="434" height="35" uuid="b1474cb4-f57c-40ee-b01b-472552a053e5">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Center" markup="none">
+						<font fontName="SansSerif" size="13" isBold="true" isUnderline="true"/>
+						<paragraph firstLineIndent="0" leftIndent="0"/>
+					</textElement>
+					<text><![CDATA[以公務員配額申請公共房屋
+及遷離部門宿舍事宜]]></text>
+				</staticText>
+				<textField evaluationTime="Group" evaluationGroup="Group1">
+					<reportElement x="60" y="331" width="434" height="70" uuid="99112684-6465-46d1-83e2-266e8491768b">
+						<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					</reportElement>
+					<textElement>
+						<font fontName="SansSerif" size="13"/>
+						<paragraph firstLineIndent="50"/>
+					</textElement>
+					<textFieldExpression><![CDATA["遷離及交還宿舍的限期，將會因應你的最終簽訂公司租約的日期而提早或順延。因此，請你填受夾附的回條並於"+($F{sign_tncy_agm_date} == null ? " " : (YEAR($F{sign_tncy_agm_date})+" 年 "+ MONTH($F{sign_tncy_agm_date}) + " 月 " + DAY($F{sign_tncy_agm_date} + "  日")))+"前把你的決定通知總部 (經辦 ︰ 人事分組 (宿舍) )，以作存檔之用。"]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="Group1">
+					<reportElement x="60" y="188" width="434" height="52" uuid="452031ee-78b7-4963-a381-19379d242e0d">
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+					</reportElement>
+					<textElement>
+						<font size="13"/>
+						<paragraph firstLineIndent="50"/>
+					</textElement>
+					<textFieldExpression><![CDATA["房屋署署長已於 "+($F{ha_letter_date} == null ? " " : (YEAR($F{ha_letter_date})+" 年 "+ MONTH($F{ha_letter_date}) + " 月 " + DAY($F{ha_letter_date} + "  日")))+"發信給你，通知你在公務員公共房屋配額 (特別配額) 之下，獲編配位於"+($F{ptqaddress} == null ? " " : $F{ptqaddress})+"的公屋單位，並暫定會於"+($F{sign_tncy_agm_date} == null ? " " : (YEAR($F{sign_tncy_agm_date})+" 年 "+ MONTH($F{sign_tncy_agm_date}) + " 月 " + DAY($F{sign_tncy_agm_date} + "  日")))+"簽訂租約。"]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="410" y="540" width="84" height="20" uuid="c68d18a4-08bf-4b46-99e4-774dbd8399c3">
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					</reportElement>
+					<textElement>
+						<font fontName="SansSerif" size="13"/>
+						<paragraph firstLineIndent="0"/>
+					</textElement>
+					<text><![CDATA[P.2/.....]]></text>
+				</staticText>
+				<textField evaluationTime="Group" evaluationGroup="Group1">
+					<reportElement x="60" y="251" width="434" height="68" uuid="022384d4-f179-4c5c-ae71-3290f75d9734">
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+					</reportElement>
+					<textElement>
+						<font fontName="SansSerif" size="13"/>
+						<paragraph firstLineIndent="50"/>
+					</textElement>
+					<textFieldExpression><![CDATA["如你接受上述公屋單位，根據 《政府產業管理及有關事務規例》 規定，你必須於簽訂公屋租約當日起計兩個月內，即於 "+($F{sign_tncy_agm_date2} == null ? " " : (YEAR($F{sign_tncy_agm_date2})+" 年 "+ MONTH($F{sign_tncy_agm_date2}) + " 月 " + DAY($F{sign_tncy_agm_date2} + "  日")))+"或之前，遷離及交還你在"+($F{phaddress} == null ? " " : $F{phaddress})+"的部門宿舍。如你決定不接受上述公屋單位，請通知有關屋邨辦事處。"]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="Group1">
+					<reportElement x="60" y="412" width="434" height="87" uuid="9dba14ce-c058-4333-b5e7-e61b2175594a">
+						<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					</reportElement>
+					<textElement>
+						<font fontName="SansSerif" size="13"/>
+						<paragraph firstLineIndent="50"/>
+					</textElement>
+					<textFieldExpression><![CDATA["如你要求在"+($F{sign_tncy_agm_date2} == null ? " " : (YEAR($F{sign_tncy_agm_date2})+" 年 "+ MONTH($F{sign_tncy_agm_date2}) + " 月 " + DAY($F{sign_tncy_agm_date2} + "  日")))+"後的一個月內仍繼續在宿舍居住，你必須於上述遷出宿舍寬限期三星期前向總部人事分組 (宿舍) 提出書面申請，詳述充分的恩恤理由並連同相關的證明文件及承諾會依時遷出及交還宿舍，讓署方考慮。"]]></textFieldExpression>
+				</textField>
+				<image>
+					<reportElement x="60" y="572" width="126" height="40" uuid="5eb182ce-bcf3-421e-9325-36259effae85">
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					</reportElement>
+					<imageExpression><![CDATA["/IMG/caring_award.png"]]></imageExpression>
+				</image>
+				<image>
+					<reportElement x="380" y="572" width="100" height="48" uuid="f5621115-c75b-401d-bea1-b2e2746f604b">
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					</reportElement>
+					<imageExpression><![CDATA["/IMG/caring_organisation.png"]]></imageExpression>
+				</image>
+				<image>
+					<reportElement x="234" y="572" width="70" height="45" uuid="24b3c6b3-7634-4530-b660-c8971c011c34">
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					</reportElement>
+					<imageExpression><![CDATA["/IMG/since1920.png"]]></imageExpression>
+				</image>
+				<textField>
+					<reportElement x="65" y="22" width="405" height="20" uuid="3f65e5ae-38fe-4ded-8852-78e34bd960d2">
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					</reportElement>
+					<textElement>
+						<font fontName="SansSerif" size="13" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Letter - 一般配額申請公屋及沒有宿舍 - template  "]]></textFieldExpression>
+				</textField>
+			</band>
+			<band height="678">
+				<staticText>
+					<reportElement x="272" y="370" width="222" height="20" uuid="d16feab9-c858-49e0-94b2-05f9a3881965">
+						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Center">
+						<font fontName="SansSerif" size="13" isUnderline="false"/>
+						<paragraph firstLineIndent="0"/>
+					</textElement>
+					<text><![CDATA[懲 教 署 署 長]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="277" y="410" width="78" height="20" uuid="fc60551b-3c7d-4926-9fe0-e22d31fd87fc">
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="SansSerif" size="13"/>
+						<paragraph firstLineIndent="0"/>
+					</textElement>
+					<textFieldExpression><![CDATA["( " + ($F{signer} == null ? "" : $F{signer})]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="445" y="410" width="49" height="20" uuid="e4b181b2-6554-485b-86f5-3ebc6cacc25d">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Left">
+						<font fontName="SansSerif" size="13" isUnderline="false"/>
+						<paragraph firstLineIndent="0"/>
+					</textElement>
+					<text><![CDATA[代行)]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="60" y="590" width="227" height="20" uuid="e9e0bfb2-8f78-4461-805c-aea5f8a36996">
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					</reportElement>
+					<textElement>
+						<font fontName="SansSerif" size="13"/>
+					</textElement>
+					<textFieldExpression><![CDATA[YEAR(NOW()) + " 年 " + MONTH(NOW()) + " 月 " + DAY(NOW()) + " 日"]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="60" y="445" width="80" height="20" uuid="21a86a8c-040e-4ffa-a4bb-fdcb4dab0f64">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Left" markup="none">
+						<font fontName="SansSerif" size="13" isUnderline="false"/>
+						<paragraph leftIndent="0"/>
+					</textElement>
+					<text><![CDATA[副本送/存：]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="140" y="515" width="305" height="20" uuid="7cea159a-0b8c-4d1a-9ea2-6ff03bef2e22">
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Left" verticalAlignment="Top" markup="styled">
+						<font fontName="SansSerif" size="13"/>
+						<paragraph firstLineIndent="0"/>
+					</textElement>
+					<textFieldExpression><![CDATA["CSD PER 5-12-12 (" + ($F{year} == null ? " " : $F{year}) +")Pt 2" + "\n" +
+"CODE: " + ($F{code} == null ? "" : $F{code})]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="60" y="5" width="434" height="20" uuid="a56d25b2-d2f4-40ab-9d4a-139c41e830b2">
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Center">
+						<font fontName="SansSerif" size="13"/>
+					</textElement>
+					<text><![CDATA[- 2 -]]></text>
+				</staticText>
+				<textField evaluationTime="Group" evaluationGroup="Group1">
+					<reportElement x="60" y="118" width="434" height="82" uuid="5a7d8b40-c305-486b-9e82-09371c2f8c15">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					</reportElement>
+					<textElement>
+						<font fontName="SansSerif" size="13"/>
+						<paragraph firstLineIndent="50"/>
+					</textElement>
+					<textFieldExpression><![CDATA["請你於遷離宿舍日至少七天前與"+($F{q_officer} == null ? " " : $F{q_officer})+"宿舍主任聯絡，以便安排有關交還宿舍事宜。入住公屋後，請你填妥 「住宅地址搬遷通知書」通知總部 (經辧 ︰ 人事分組 (人事行政) )，以便更新你的個人資料。有關的 「通知書」可向你所屬院所的寫字樓索取。"]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="60" y="291" width="434" height="35" uuid="6e29da83-11b7-46db-afc9-d6b058f40359">
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					</reportElement>
+					<textElement>
+						<font fontName="SansSerif" size="13"/>
+						<paragraph firstLineIndent="50"/>
+					</textElement>
+					<text><![CDATA[同時，由於你事在公務員公共房屋一般配額項下獲編配公屋單位，因此，你沒有資格領取搬遷津貼及租金津貼。]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="60" y="555" width="226" height="20" uuid="5304668b-1f7c-4cc3-ae10-74c5c1b7b2f0">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Left" markup="none">
+						<font fontName="SansSerif" size="13" isUnderline="false"/>
+						<paragraph leftIndent="0"/>
+					</textElement>
+					<text><![CDATA[連回條]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="60" y="35" width="434" height="75" uuid="100f7cc8-ade0-4529-b4bf-62165fb421ca">
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					</reportElement>
+					<textElement>
+						<font fontName="SansSerif" size="13"/>
+						<paragraph firstLineIndent="50"/>
+					</textElement>
+					<text><![CDATA[請注意 ︰ 根據公屋租約規定，你必須在起租日計一個月內入住獲配的公屋單位；故此，儘管署方給予你兩個月的寬限期以遷離宿舍，但你仍須遵守該租約的規定，倘你未能如期入住獲配的公屋單位，你需預早向所屬屋邨辦事處申請延期入住，以免觸犯租約規條。]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="140" y="445" width="305" height="20" uuid="be845848-81d1-4707-a3ec-3ad6412e02f4">
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Left" verticalAlignment="Top" markup="styled">
+						<font fontName="SansSerif" size="13"/>
+						<paragraph firstLineIndent="0"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{cc_1} == null ? " " : $F{cc_1}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="140" y="465" width="305" height="15" uuid="12203d4c-02d6-4a08-b3fe-8f0649287055">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Left" markup="none">
+						<font fontName="SansSerif" size="11" isUnderline="false"/>
+						<paragraph leftIndent="0"/>
+					</textElement>
+					<text><![CDATA[- 請確保上述職員於限期前填妥回條並傳真至總部宿舍組]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="140" y="480" width="305" height="20" uuid="38075e59-b777-465d-b48d-005a63aecab7">
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Left" verticalAlignment="Top" markup="styled">
+						<font fontName="SansSerif" size="13"/>
+						<paragraph firstLineIndent="0"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($F{cc_2} == null ? " " : $F{cc_2}) + " ( 經辦人 ︰ 宿舍主任)"]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="140" y="500" width="305" height="15" uuid="0486a91a-433b-4b29-b138-562229e03210">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Left" markup="styled">
+						<font fontName="SansSerif" size="11" isUnderline="false"/>
+						<paragraph leftIndent="0"/>
+					</textElement>
+					<text><![CDATA[- 請於收回宿舍後7天內向總部遞交 <font face="SansSerif">GF 140</font> 表格]]></text>
+				</staticText>
+				<frame>
+					<reportElement x="449" y="455" width="11" height="51" uuid="dcec44ee-5bb4-4312-8950-e899e0162b28"/>
+					<line>
+						<reportElement x="0" y="0" width="10" height="1" uuid="1c6c4402-4101-4e6d-9962-48e1ef60bbf4">
+							<property name="com.jaspersoft.studio.unit.width" value="px"/>
+							<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						</reportElement>
+						<graphicElement>
+							<pen lineWidth="0.5"/>
+						</graphicElement>
+					</line>
+					<line>
+						<reportElement x="0" y="50" width="10" height="1" uuid="6f548607-73c4-4dda-a8cb-42eecb9e2b57">
+							<property name="com.jaspersoft.studio.unit.width" value="px"/>
+							<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						</reportElement>
+						<graphicElement>
+							<pen lineWidth="0.5"/>
+						</graphicElement>
+					</line>
+					<line>
+						<reportElement x="10" y="0" width="1" height="51" uuid="e951f396-d739-4df5-b4cf-77f4b489c2d0">
+							<property name="com.jaspersoft.studio.unit.width" value="px"/>
+							<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						</reportElement>
+						<graphicElement>
+							<pen lineWidth="0.5"/>
+						</graphicElement>
+					</line>
+				</frame>
+				<staticText>
+					<reportElement x="464" y="470" width="81" height="20" uuid="33a5614e-227a-4af1-bb42-3c451d041a6b">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Left">
+						<font fontName="SansSerif" size="13" isUnderline="false"/>
+						<paragraph firstLineIndent="0"/>
+					</textElement>
+					<text><![CDATA[不連回條]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="60" y="210" width="434" height="70" uuid="2750c863-4fa8-4bb9-93ba-f551089c24a5">
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					</reportElement>
+					<textElement>
+						<font fontName="SansSerif" size="13"/>
+						<paragraph firstLineIndent="50"/>
+					</textElement>
+					<text><![CDATA[請注意，由於你是在2000年6月1日之後按公務員聘用條款及服務條件受聘的公務員，如果你接受上述公共房屋福利(即簽訂租住公屋租約)，即使日後放棄此項公共房屋福利，不符合資格申請其他公務員房屋福利（包括部門宿舍及非實報實銷現金津貼）。
+]]></text>
+				</staticText>
+			</band>
+			<band height="678">
+				<staticText>
+					<reportElement x="164" y="16" width="226" height="20" uuid="e92b573a-9b70-4311-a9f6-b8cb4c5eaa13">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Center" markup="none">
+						<font fontName="SansSerif" size="13" isBold="true" isUnderline="true"/>
+						<paragraph leftIndent="0"/>
+					</textElement>
+					<text><![CDATA[回    條]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="60" y="50" width="120" height="20" uuid="3a260634-b623-4f07-a88d-a658ab90fd31">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Left" markup="none">
+						<font fontName="SansSerif" size="13" isUnderline="false"/>
+						<paragraph leftIndent="0"/>
+					</textElement>
+					<text><![CDATA[總部人事檔案編號︰]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="180" y="50" width="120" height="20" uuid="f0694a58-b5ed-4b08-b4d0-8e76f83e041c">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Left" markup="none">
+						<font fontName="SansSerif" size="13" isUnderline="false"/>
+						<paragraph leftIndent="0"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="60" y="80" width="20" height="34" uuid="51eabecb-4aaa-4c00-890a-30dd982cb2d3">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Left" markup="none">
+						<font fontName="SansSerif" size="13" isUnderline="false"/>
+						<paragraph leftIndent="0"/>
+					</textElement>
+					<text><![CDATA[呈]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="80" y="80" width="220" height="35" uuid="c293079e-fdac-4840-b8b0-7ccd8b961c6b">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Left" markup="none">
+						<font fontName="SansSerif" size="13" isUnderline="false"/>
+						<paragraph leftIndent="0"/>
+					</textElement>
+					<text><![CDATA[懲教署署長
+(經辦︰總部人事分組 (宿舍) )]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="60" y="125" width="240" height="20" uuid="30b5920c-9748-4a71-88bb-d452a5d30da0">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Left" markup="none">
+						<font fontName="SansSerif" size="13" isUnderline="false"/>
+						<paragraph leftIndent="0"/>
+					</textElement>
+					<text><![CDATA[傳真號碼︰2511 5986]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="60" y="170" width="434" height="20" uuid="14c226e1-dfbf-4242-afa1-b0119137d0ad">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Center" markup="none">
+						<font fontName="SansSerif" size="13" isBold="true" isUnderline="true"/>
+						<paragraph leftIndent="0"/>
+					</textElement>
+					<text><![CDATA[以公務員配額申請公共房屋]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="60" y="190" width="434" height="20" uuid="ce164082-8bd6-4111-96f2-e31b2fb48a02">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Center" markup="none">
+						<font fontName="SansSerif" size="13" isBold="true" isUnderline="true"/>
+						<paragraph leftIndent="0"/>
+					</textElement>
+					<textFieldExpression><![CDATA["獲配單位︰" + ($F{ptqaddress} == null ? "" : $F{ptqaddress})]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="60" y="220" width="434" height="20" uuid="e0b76286-bf21-480e-92f7-3d5a077471c1">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Left" markup="none">
+						<font fontName="SansSerif" size="13" isBold="true" isUnderline="true"/>
+						<paragraph firstLineIndent="50" leftIndent="0"/>
+					</textElement>
+					<text><![CDATA[本人決定︰]]></text>
+				</staticText>
+				<rectangle>
+					<reportElement x="70" y="253" width="15" height="15" uuid="e6be0d47-e625-4f47-9722-43331d226f6c">
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					</reportElement>
+				</rectangle>
+				<staticText>
+					<reportElement x="60" y="250" width="434" height="35" uuid="f85d0a15-95cf-4bf3-84ab-42deda4214f5">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Left" markup="styled">
+						<font fontName="SansSerif" size="13" isBold="false" isUnderline="false"/>
+						<paragraph firstLineIndent="0" leftIndent="50"/>
+					</textElement>
+					<text><![CDATA[<b>接受</b>上述公共房屋單位，並已於<b><u>      年    月    日</u></b>簽訂租約，現附上租金收據副本為證。]]></text>
+				</staticText>
+				<rectangle>
+					<reportElement x="70" y="308" width="15" height="15" uuid="7f0da399-92f4-42d8-933a-9424143f7789">
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					</reportElement>
+				</rectangle>
+				<staticText>
+					<reportElement x="60" y="305" width="434" height="35" uuid="61e657d7-df26-4fe6-bcde-135be9a13a08">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Left" markup="styled">
+						<font fontName="SansSerif" size="13" isBold="false" isUnderline="false"/>
+						<paragraph firstLineIndent="0" leftIndent="50"/>
+					</textElement>
+					<text><![CDATA[<b>不接受</b>上述公共房屋單位，並已通知該屋邨辦事處。同時本人現申請保留部門宿舍。]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="60" y="360" width="320" height="15" uuid="41cd5143-1ac1-4a8f-a31d-93326dcaecf7">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					</reportElement>
+					<textElement markup="html">
+						<font fontName="SansSerif"/>
+						<paragraph firstLineIndent="10" leftIndent="0"/>
+					</textElement>
+					<textFieldExpression><![CDATA["請在適當方格內填上「<font face=\"DejaVu Sans\">\u2713</font>」號"]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="350" y="430" width="144" height="30" uuid="c017ce35-ba08-47d4-b385-ee341290c4f5">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<box>
+						<bottomPen lineWidth="1.0"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+						<font fontName="SansSerif" size="13" isBold="false" isUnderline="true"/>
+						<paragraph firstLineIndent="0" leftIndent="0"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="206" y="430" width="144" height="30" uuid="3f8ec532-e6b9-4161-a1be-4ba19576e93a">
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+						<font fontName="SansSerif" size="13" isBold="false" isUnderline="false"/>
+						<paragraph firstLineIndent="50" leftIndent="0"/>
+					</textElement>
+					<text><![CDATA[簽署 ︰]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="350" y="460" width="144" height="30" uuid="15415d38-e960-4922-92db-cd0f6122a33b">
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<box>
+						<bottomPen lineWidth="1.0"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+						<font fontName="SansSerif" size="13" isBold="false" isUnderline="false"/>
+						<paragraph leftIndent="0"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{chinese} == null ? "" : $F{chinese}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="206" y="460" width="144" height="30" uuid="7df54b74-d0b0-4940-9e99-89587f8ca46a">
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+						<font fontName="SansSerif" size="13" isBold="false" isUnderline="false"/>
+						<paragraph firstLineIndent="50" leftIndent="0"/>
+					</textElement>
+					<text><![CDATA[姓名 ︰]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="350" y="490" width="144" height="30" uuid="b144b836-1e32-414c-a709-7b09f51f3234">
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<box>
+						<bottomPen lineWidth="1.0"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+						<font fontName="SansSerif" size="13" isBold="false" isUnderline="false"/>
+						<paragraph leftIndent="0"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($F{rank} == null ? "" : $F{rank}) + " " + ($F{staff_no} == null ? "" : Integer.parseInt($F{staff_no}))]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="206" y="490" width="144" height="30" uuid="a0b13ab2-570c-4647-b14f-1cc8c3f2862e">
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+						<font fontName="SansSerif" size="13" isBold="false" isUnderline="false"/>
+						<paragraph firstLineIndent="50" leftIndent="0"/>
+					</textElement>
+					<text><![CDATA[職級及編號 ︰]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="350" y="520" width="144" height="30" uuid="c7d2c187-04ff-43c0-b879-5e330200d239">
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<box>
+						<bottomPen lineWidth="1.0"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+						<font fontName="SansSerif" size="13" isBold="false" isUnderline="true"/>
+						<paragraph firstLineIndent="0" leftIndent="0"/>
+					</textElement>
+					<text><![CDATA[]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="206" y="520" width="144" height="30" uuid="b79a44e2-48ea-453f-a2e1-8353200b9c65">
+						<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+						<font fontName="SansSerif" size="13" isBold="false" isUnderline="false"/>
+						<paragraph firstLineIndent="50" leftIndent="0"/>
+					</textElement>
+					<text><![CDATA[日期 ︰]]></text>
+				</staticText>
+			</band>
+		</groupHeader>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="124">
+			<image hAlign="Center">
+				<reportElement x="220" y="0" width="114" height="69" uuid="ed550f98-69ce-49e6-a965-20bccc7e7711">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<imageExpression><![CDATA["/IMG/CSD.png"]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement x="0" y="0" width="220" height="24" uuid="53ae8d14-9965-4e57-984f-a133dfa04de2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[香 港 懲 教 署]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="34" width="50" height="15" uuid="f2350f80-af65-434f-b1b4-9e9e0424eb06"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="11"/>
+				</textElement>
+				<text><![CDATA[本署檔號]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="59" width="50" height="15" uuid="8fee99b2-ba63-4cda-911c-77e1ee9d236f"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="11"/>
+				</textElement>
+				<text><![CDATA[來函檔號]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="84" width="29" height="15" uuid="84403606-0156-4dfc-b97c-446fbac48648">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="11"/>
+				</textElement>
+				<text><![CDATA[電話]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="109" width="29" height="15" uuid="3249ca52-fbd9-455c-b41c-2f5b146651f0">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="11"/>
+				</textElement>
+				<text><![CDATA[傳真]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="100" y="34" width="119" height="15" uuid="f3d3e76f-efcb-49f4-91ff-1acbf287d44c"/>
+				<textElement verticalAlignment="Bottom">
+					<font fontName="SansSerif"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="100" y="84" width="119" height="15" uuid="40a2783e-a321-4710-b309-24b37e8da714">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="10"/>
+				</textElement>
+				<text><![CDATA[2582 5136]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="100" y="109" width="119" height="15" uuid="068d8cb9-9886-489a-b1fc-930734eadfdb">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="10"/>
+				</textElement>
+				<text><![CDATA[2511 5986]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="319" y="0" width="236" height="24" uuid="72d3f8e3-355e-4084-b5bb-f0113641b0e8"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="SansSerif" size="10" isBold="false"/>
+				</textElement>
+				<text><![CDATA[CORRECTIONAL SERVICES DEPARTMENT
+HONG KONG]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="334" y="24" width="220" height="44" uuid="28e5f12b-c04c-4312-9d67-838b0d84f669">
+					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					<property name="com.jaspersoft.studio.unit.tabStopWidth" value="px"/>
+					<property name="com.jaspersoft.studio.unit.spacingBefore" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="SansSerif" size="11"/>
+					<paragraph leftIndent="30" tabStopWidth="5"/>
+				</textElement>
+				<text><![CDATA[香港灣仔港灣道12號
+灣仔政府大樓 23、24 及 27 樓
+懲教署總部]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="100" y="59" width="119" height="15" uuid="fba8dc1b-24a9-4366-a4b2-2ba7203ede70"/>
+				<textElement verticalAlignment="Bottom">
+					<font fontName="SansSerif"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="334" y="68" width="220" height="55" uuid="67208d6e-a64b-4fc0-bda1-70e32df66124">
+					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					<property name="com.jaspersoft.studio.unit.tabStopWidth" value="px"/>
+					<property name="com.jaspersoft.studio.unit.spacingBefore" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="SansSerif" size="9"/>
+					<paragraph leftIndent="30" tabStopWidth="5"/>
+				</textElement>
+				<text><![CDATA[Headquarters
+23rd, 24th and 27th floors
+Wanchai Tower, 12 Harbour Road
+Wan Chai, Hong Kong]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="50" y="34" width="50" height="15" uuid="8b3f0b85-66ef-48bb-88b7-403bb409f515">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement verticalAlignment="Bottom">
+					<font fontName="SansSerif"/>
+				</textElement>
+				<text><![CDATA[Our Ref.:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="29" y="109" width="71" height="15" uuid="bb8138be-41e2-43ca-903c-2e972a77107a">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="10"/>
+				</textElement>
+				<text><![CDATA[Fax.:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="50" y="59" width="50" height="15" uuid="1c6dc0e4-2cd1-478b-afbc-7039e22a7eda"/>
+				<textElement verticalAlignment="Bottom">
+					<font fontName="SansSerif"/>
+				</textElement>
+				<text><![CDATA[Your Ref.:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="29" y="84" width="71" height="15" uuid="50afd4c8-ff1f-41e7-82bf-0909f14a5fd4">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="10"/>
+				</textElement>
+				<text><![CDATA[Tel.:]]></text>
+			</staticText>
+		</band>
+	</title>
+</jasperReport>

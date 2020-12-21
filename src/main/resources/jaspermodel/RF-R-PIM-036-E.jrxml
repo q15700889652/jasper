@@ -1,0 +1,529 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="RF-R-PIM-047-E" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="80c34080-f201-4eef-961a-4357a16e2f0e">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MyDbTest"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.report.description" value=""/>
+	<parameter name="staffNo" class="java.lang.String"/>
+	<parameter name="contactPerson" class="java.lang.String"/>
+	<parameter name="signer" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[--c02
+-- retirement leave start date, end date, retirement effective date, no.of day of retirement leave, 存假餘額
+with retirement_leave(retEffectiveDate, preRetLeaveStartDate, preRetLeaveEndDate,noOfrl,leave_bal, delreason) as (
+select
+top 1
+eh.deleffective as retEffectiveDate, 
+lr_date as preRetLeaveStartDate, 
+dateadd(day, -1, eh.deleffective) as preRetLeaveEndDate,
+datediff(day, eh.lr_date, eh.deleffective) as noOfrl, 
+eh.leave_bal,
+(case when eh.DELREASON = 'Normal Retirement' then N'正常退休'
+      when eh.DELREASON = 'Early Retirement' then N'自願提早退休'
+	  else N'正常/自願提早退休' end) delreason
+from staff st 
+inner join personal p on st.STAFF_NO = p.STAFF_NO
+inner join EXIT_HISTORY eh on st.STAFF_NO = eh.STAFF_NO 
+	and (eh.UPDATE_MODE is null or eh.update_mode <> 'D')
+	and upper(eh.delreason) LIKE ('%RETIREMENT%')
+where st.STAFF_NO = $P{staffNo} and 
+(st.UPDATE_MODE is null or st.update_mode <> 'D')),
+
+--(林小姐) Title, Alt.Name, Post Phone
+contact(title, chinese_surname, post_telno, pronoun) as (
+select top 1 st.title, sn.CHINESE_SURNAME,  ep.post_telno,
+case st.sex when 'M' then N'先生' else N'小姐' end as pronoun
+from posting_now pn 
+inner join staff st on pn.STAFF_NO = st.STAFF_NO 
+	and (st.UPDATE_MODE is null or st.UPDATE_MODE <> 'D')
+inner join staff_name sn on st.STAFF_NO = sn.STAFF_NO
+left outer join esm_post ep on pn.POST_ID = ep.post_id and ep.status = 'A'
+where ISNULL(duties_X,ISNULL(duties_T,'')) = 'EO(P)2'
+--where ISNULL(duties_X,ISNULL(duties_T,'')) != 'EO(P)2'
+and pn.staff_no = $P{contactPerson}),
+
+--(鄺翠娟) Title, Alt.Name
+signer(chinese) as (
+select  top 1 st.chinese  from staff st 
+inner join posting_now pn on st.STAFF_NO = pn.STAFF_NO
+where ISNULL(duties_X,ISNULL(duties_T,'')) = 'EO(P)1'
+--where ISNULL(duties_X,ISNULL(duties_T,'')) != 'EO(P)1'
+and pn.staff_no = $P{signer})
+
+--Institution, rank, XX女士
+select
+st.staff_no,
+st.alt_name,
+st.chinese as name_c,
+st.rankabbr,
+(select chinese from ranks r where st.rankabbr = r.rankabbr) as rank_c,
+sn.CHINESE_SURNAME as surname_c,
+case st.sex when 'M' then N'先生' else N'女士' end as pronoun,
+ISNULL(EXACT_INST,ISNULL(INST_R,ISNULL(INST_X,ISNULL(INST_T,''))))  curInstitution,
+hi.C_INSTITUTION_CONTACT_PERSON as inst_contact,
+(select delreason from retirement_leave) delreason,
+(select retEffectiveDate from retirement_leave) as retEffectiveDate, 
+(select preRetLeaveStartDate from retirement_leave) as preRetLeaveStartDate, 
+(select preRetLeaveEndDate from retirement_leave) as preRetLeaveEndDate,
+(select noOfrl from retirement_leave) as noOfrl,
+(select leave_bal from retirement_leave) as leave_bal,
+(select concat(chinese_surname,pronoun) from contact) as contact_person,
+(select post_telno from contact) as post_telno,
+(select chinese from signer) as signer
+
+from staff st 
+inner join posting_now pn on st.STAFF_NO = pn.STAFF_NO
+--inner join staff_name sn on st.STAFF_NO = sn.STAFF_NO
+left join staff_name sn on st.STAFF_NO = sn.STAFF_NO
+left join HEAD_OF_INSTITUTION hi on 
+	(pn.inst_r collate SQL_Latin1_General_CP1_CS_AS = hi.institution collate SQL_Latin1_General_CP1_CS_AS or pn.inst_t collate SQL_Latin1_General_CP1_CS_AS= hi.institution collate SQL_Latin1_General_CP1_CS_AS)
+where st.STAFF_NO = $P{staffNo} and (st.UPDATE_MODE is null or st.update_mode <> 'D');]]>
+	</queryString>
+	<field name="staff_no" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="staff_no"/>
+	</field>
+	<field name="alt_name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="alt_name"/>
+	</field>
+	<field name="name_c" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="name_c"/>
+	</field>
+	<field name="rankabbr" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="rankabbr"/>
+	</field>
+	<field name="rank_c" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="rank_c"/>
+	</field>
+	<field name="surname_c" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="surname_c"/>
+	</field>
+	<field name="pronoun" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="pronoun"/>
+	</field>
+	<field name="curInstitution" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="curInstitution"/>
+	</field>
+	<field name="inst_contact" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="inst_contact"/>
+	</field>
+	<field name="delreason" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="delreason"/>
+	</field>
+	<field name="retEffectiveDate" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.label" value="retEffectiveDate"/>
+	</field>
+	<field name="preRetLeaveStartDate" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.label" value="preRetLeaveStartDate"/>
+	</field>
+	<field name="preRetLeaveEndDate" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.label" value="preRetLeaveEndDate"/>
+	</field>
+	<field name="noOfrl" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.label" value="noOfrl"/>
+	</field>
+	<field name="leave_bal" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="leave_bal"/>
+	</field>
+	<field name="contact_person" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="contact_person"/>
+	</field>
+	<field name="post_telno" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="post_telno"/>
+	</field>
+	<field name="signer" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="signer"/>
+	</field>
+	<variable name="retirement_leave_start_date" class="java.lang.String">
+		<variableExpression><![CDATA[YEAR($F{preRetLeaveStartDate})+" 年 "+MONTH($F{preRetLeaveStartDate})+" 月 "+DAY($F{preRetLeaveStartDate})+" 日"]]></variableExpression>
+	</variable>
+	<variable name="retirement_leave_end_date" class="java.lang.String">
+		<variableExpression><![CDATA[YEAR($F{preRetLeaveEndDate})+" 年 "+MONTH($F{preRetLeaveEndDate})+" 月 "+DAY($F{preRetLeaveEndDate})+" 日"]]></variableExpression>
+	</variable>
+	<variable name="retirement_effective_date" class="java.lang.String">
+		<variableExpression><![CDATA[YEAR($F{retEffectiveDate})+" 年 "+MONTH($F{retEffectiveDate})+" 月 "+DAY($F{retEffectiveDate})+" 日"]]></variableExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="802" splitType="Stretch">
+			<image>
+				<reportElement x="70" y="762" width="126" height="40" uuid="32ff7e89-640b-4394-b16b-bf914fe98610">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<imageExpression><![CDATA["IMG/caring_award.png"]]></imageExpression>
+			</image>
+			<image>
+				<reportElement x="390" y="754" width="100" height="48" uuid="a050b1b1-75b8-4065-9135-70fe1db3ec0e">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<imageExpression><![CDATA["/IMG/caring_organisation.png"]]></imageExpression>
+			</image>
+			<image>
+				<reportElement x="244" y="757" width="70" height="45" uuid="82d8fe10-bbb7-4716-83d8-a9339c70984b">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<imageExpression><![CDATA["/IMG/since1920.png"]]></imageExpression>
+			</image>
+			<textField>
+				<reportElement x="40" y="164" width="385" height="20" uuid="bbb6aaf2-21b3-43f0-81de-75f20807b69e"/>
+				<textElement>
+					<font fontName="DFKai-SB" size="13"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{inst_contact}+"轉交"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="40" y="184" width="385" height="20" uuid="3d6bbdf4-de84-48fb-b26a-b43575d61055"/>
+				<textElement>
+					<font fontName="DFKai-SB" size="13"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{rank_c} + " " +$F{staff_no}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="40" y="204" width="385" height="20" uuid="f268ea25-2cdf-4efc-a9aa-bbec209aa089"/>
+				<textElement>
+					<font fontName="DFKai-SB" size="13"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{name_c} + $F{pronoun}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="40" y="234" width="385" height="20" uuid="0ada79e5-0588-4adb-b2cc-d13f924bd837"/>
+				<textElement>
+					<font fontName="DFKai-SB" size="13"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{surname_c}== null ? $F{name_c} : $F{surname_c}) + $F{pronoun} + " : "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="216" y="264" width="123" height="20" uuid="f4a0d786-0d8c-4e90-a90e-5fe6e91d0617">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DFKai-SB" size="13" isUnderline="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["正常退休"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="52" y="340" width="450" height="20" uuid="763e04f9-8103-4822-a426-f276fbdc557f">
+					<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="DFKai-SB" size="13"/>
+					<paragraph firstLineIndent="50"/>
+				</textElement>
+				<textFieldExpression><![CDATA["退休假期共："+$F{leave_bal} +$F{noOfrl}+"天"+"(包括"+$F{leave_bal}+"天存假餘額)"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="225" y="0" width="114" height="20" uuid="b68295f4-a7e2-4602-a315-86256a29edac">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font fontName="DFKai-SB" size="13" isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[限閱文件(人事)]]></text>
+			</staticText>
+			<image hAlign="Center">
+				<reportElement x="225" y="20" width="114" height="69" uuid="04ec47ae-e69a-4367-b40e-5161ceaaa8b8">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<imageExpression><![CDATA["/IMG/CSD.png"]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement x="5" y="20" width="220" height="24" uuid="1c76c7fa-a369-40c4-a62f-15baa757755e"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="PMingLiU" size="10" isBold="false"/>
+				</textElement>
+				<text><![CDATA[香  港  懲  教  署]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="5" y="54" width="31" height="15" uuid="d7087fad-6c26-4cf9-84b8-6b08f38bb061"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="PMingLiU" size="7"/>
+				</textElement>
+				<text><![CDATA[本署檔號]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="6" y="79" width="30" height="15" uuid="f866af5a-4576-48da-b40a-bf0fc62c8de1"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="PMingLiU" size="7"/>
+				</textElement>
+				<text><![CDATA[來函檔號]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="5" y="104" width="18" height="15" uuid="e976a993-95e6-49ec-8840-361ce01feab3">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="PMingLiU" size="7"/>
+				</textElement>
+				<text><![CDATA[電話]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="5" y="129" width="18" height="15" uuid="1449f4af-16c9-4cb9-bcba-3f168311d93e">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="PMingLiU" size="7"/>
+				</textElement>
+				<text><![CDATA[傳真]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="36" y="54" width="40" height="15" uuid="e2915508-74fc-48ec-b729-a7f721ed8429"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="8"/>
+				</textElement>
+				<text><![CDATA[Our Ref.: ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="37" y="79" width="38" height="15" uuid="64d8ece9-9cf3-436a-a3f5-dce7f06ad07a">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="8"/>
+				</textElement>
+				<text><![CDATA[Your Ref.:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="23" y="104" width="52" height="15" uuid="7eeb1104-450b-45a9-8c6f-3e9b8d3114f5">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="8"/>
+				</textElement>
+				<text><![CDATA[Tel.:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="23" y="129" width="52" height="15" uuid="b33147d2-d183-44d3-aded-9c1027eb245f">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="8"/>
+				</textElement>
+				<text><![CDATA[Fax:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="76" y="54" width="149" height="15" uuid="5723b91d-8e97-4dd5-afd3-18e56e1bc7d5"/>
+				<textElement verticalAlignment="Bottom">
+					<font fontName="Times New Roman"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="75" y="104" width="147" height="15" uuid="a645cdae-47e1-434f-ba6e-24a8a7555131">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="12"/>
+				</textElement>
+				<text><![CDATA[2582 5147]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="75" y="129" width="147" height="15" uuid="632a35c5-9489-4d26-82ae-d8027f985267">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="12"/>
+				</textElement>
+				<text><![CDATA[2511 5986]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="339" y="20" width="221" height="24" uuid="3b224c5b-7f58-444a-8797-ffb235b87c23"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="8"/>
+				</textElement>
+				<text><![CDATA[CORRECTIONAL SERVICES DEPARTMENT
+HONG KONG]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="339" y="59" width="220" height="50" uuid="25f43e2d-39a5-45fb-a51e-b13894e6ec46">
+					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+					<property name="com.jaspersoft.studio.unit.tabStopWidth" value="px"/>
+					<property name="com.jaspersoft.studio.unit.spacingBefore" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="DFKai-SB" size="12"/>
+					<paragraph leftIndent="30" tabStopWidth="5"/>
+				</textElement>
+				<text><![CDATA[香	港	灣	仔	港	灣	道	12	號
+灣	仔	政	府	大	樓	23	樓
+懲	教	署	總	部]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="75" y="79" width="148" height="15" uuid="e702b2a4-b86f-4942-bf30-d3a57efc8db5"/>
+				<textElement verticalAlignment="Bottom">
+					<font fontName="Times New Roman"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="52" y="295" width="450" height="35" uuid="fb10d68d-fb9c-44be-b3d2-0f36230a9bc2">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Left">
+					<font fontName="DFKai-SB" size="13" isUnderline="false"/>
+					<paragraph firstLineIndent="50"/>
+				</textElement>
+				<text><![CDATA[由於閣下即將退休，現通知閣下，閣下的預計退休前假期和退休生效日期如下：]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="52" y="360" width="450" height="20" uuid="409c879f-8079-4b48-8370-e6372cf28934">
+					<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="DFKai-SB" size="13"/>
+					<paragraph firstLineIndent="50"/>
+				</textElement>
+				<textFieldExpression><![CDATA["由 " + $V{retirement_leave_start_date} + " 至 " + $V{retirement_leave_end_date}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="52" y="390" width="450" height="20" uuid="1fd5b4c4-16d1-4452-b04e-b0f49512f350">
+					<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="DFKai-SB" size="13"/>
+					<paragraph firstLineIndent="50"/>
+				</textElement>
+				<textFieldExpression><![CDATA["退休生效日期為："+ $V{retirement_effective_date}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="184" y="608" width="154" height="71" uuid="0531889e-57ea-468c-a876-b9544f2cb87b">
+					<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="DFKai-SB" size="13"/>
+					<paragraph firstLineIndent="0"/>
+				</textElement>
+				<textFieldExpression><![CDATA["庫務署署長\n" + 
+$F{inst_contact} + "\n" +
+"行政主任(會計)\n" +
+"監督(職員關係及福利)\n" +
+"監督(人力資源)-如有需要，請考慮更改相關的調職及署任安排\n" ]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="52" y="471" width="450" height="40" uuid="fc572cc1-f02f-4195-bf27-61a8b76a00dd">
+					<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="DFKai-SB" size="13"/>
+					<paragraph firstLineIndent="50"/>
+				</textElement>
+				<textFieldExpression><![CDATA["如有任何疑問，請致電"+($F{post_telno} == null ? "" : $F{post_telno})+"與總部人事分組" + ($F{contact_person} == null ? "" : $F{contact_person}) +"聯絡。"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="57" y="608" width="127" height="39" uuid="5f25a8fc-b2ed-4ad1-a38c-e35cb2d62574">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+					<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="DFKai-SB" size="13" isUnderline="false"/>
+					<paragraph firstLineIndent="0"/>
+				</textElement>
+				<text><![CDATA[特別副本送/存:
+(正本並無註錄)]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="274" y="568" width="106" height="20" uuid="7a15571c-848a-425a-9713-15289c464da9">
+					<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DFKai-SB" size="13"/>
+					<paragraph firstLineIndent="0"/>
+				</textElement>
+				<textFieldExpression><![CDATA["(" + ($F{signer} == null ? "" : $F{signer})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="453" y="568" width="51" height="20" uuid="a743c26d-215e-4fd3-9a65-b293576d7e1f">
+					<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DFKai-SB" size="13"/>
+					<paragraph firstLineIndent="0"/>
+				</textElement>
+				<textFieldExpression><![CDATA["代行)"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="311" y="518" width="192" height="20" uuid="298d2063-a4ae-4812-9b6b-7831e8d2deac">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font fontName="DFKai-SB" size="13" isUnderline="false"/>
+					<paragraph firstLineIndent="0"/>
+				</textElement>
+				<text><![CDATA[懲教署署長]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="57" y="713" width="127" height="20" uuid="cae4be5b-d1c9-45e1-a96c-58bfbc44478f">
+					<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="DFKai-SB" size="13"/>
+					<paragraph firstLineIndent="0"/>
+				</textElement>
+				<textFieldExpression><![CDATA[YEAR(TODAY( ))+"年"+MONTH(TODAY())+"月"+DAY(TODAY())+"日"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="338" y="608" width="154" height="71" uuid="26f2d15d-fcc4-407c-b518-e0a68660b671">
+					<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="DFKai-SB" size="13"/>
+					<paragraph firstLineIndent="0"/>
+				</textElement>
+				<textFieldExpression><![CDATA["高級文書主任(編制)\n" +
+"助理文書主任(服務條件)2\n" +
+"助理文書主任(宿舍)1\n" +
+"CSD PER 5-90-3"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="184" y="679" width="307" height="19" uuid="0058cb89-db10-4c08-9841-7af0ca6f8aad">
+					<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font fontName="DFKai-SB" size="13"/>
+					<paragraph firstLineIndent="0"/>
+				</textElement>
+				<textFieldExpression><![CDATA["監督(人力資源)-如有需要，請考慮更改相關的調職及署任安排\n" ]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="52" y="420" width="450" height="40" uuid="6484d83a-d96f-48c2-ab18-ddeae9689d12">
+					<property name="com.jaspersoft.studio.unit.firstLineIndent" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement>
+					<font fontName="DFKai-SB" size="13"/>
+					<paragraph firstLineIndent="50"/>
+				</textElement>
+				<textFieldExpression><![CDATA["為便利署方在填補人手空缺上做出妥善安排,請你盡早落實你的假期安排。"]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="802"/>
+	</detail>
+</jasperReport>

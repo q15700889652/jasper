@@ -1,9 +1,9 @@
-package jasper.scorrtUtil.impl;
+package jasper.scorrtUtil.JasperScorrt.core.impl;
 
 import java.io.File;
 import java.io.InputStream;
 
-import jasper.scorrtUtil.JasperAnalysis;
+import jasper.scorrtUtil.JasperScorrt.core.CoreLoding;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperReport;
@@ -12,7 +12,13 @@ import net.sf.jasperreports.engine.util.JRLoader;
 import net.sf.jasperreports.engine.util.JRSaver;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 
-public class JasperAnalysisImpl implements JasperAnalysis {
+public class CoreLodingDefault implements CoreLoding{
+
+	
+	public void coreLoding(String name, String JasperAddress, String saveaddress) {
+		Analysis(name,JasperAddress,saveaddress);
+		
+	}
 	
 	public void Analysis(String name, String JasperAddress, String saveaddress) {
 		String filename = saveaddress + name + ".jasper";
@@ -32,5 +38,4 @@ public class JasperAnalysisImpl implements JasperAnalysis {
 		}
 
 	}
-
 }

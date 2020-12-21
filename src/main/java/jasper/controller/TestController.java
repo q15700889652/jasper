@@ -24,13 +24,10 @@ import org.springframework.web.bind.annotation.RestController;
 import jasper.entity.Student;
 import jasper.entity.User;
 import jasper.mapper.UserMapper;
-import jasper.scorrtUtil.Cache;
-import jasper.scorrtUtil.JasperChangeParamsHanld;
-import jasper.scorrtUtil.JasperExportHanld;
-import jasper.scorrtUtil.impl.JasperExportByHtml;
-import jasper.scorrtUtil.impl.JasperExportByPdf;
-import jasper.scorrtUtil.impl.JasperSourceDataByEntity;
-import jasper.scorrtUtil.impl.JasperSourceDataByJdbc;
+import jasper.scorrtUtil.JasperScorrt.JasperHanld;
+import jasper.scorrtUtil.JasperScorrt.JasperHtmlDynamic;
+import jasper.scorrtUtil.JasperScorrt.caChe.Cache;
+import jasper.scorrtUtil.JasperScorrt.export.impl.ExportLodingPdf;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JROrigin;
 import net.sf.jasperreports.engine.JRPrintElement;
@@ -58,7 +55,7 @@ public class TestController {
 	@Autowired
 	private UserMapper userMapper;
 	@Autowired
-	private JasperExportHanld jasperExportHanld;
+	private JasperHanld jasperExportHanld;
 	@Autowired
 	private SqlSession sqlSession;
 	
@@ -80,12 +77,13 @@ public class TestController {
 		List<Student> list = new ArrayList<>();
 		list.add(student);
 		JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(list);
-		jasperExportHanld.setName(name);
-		jasperExportHanld.setRequest(request);
-		jasperExportHanld.setResponse(response);
-		jasperExportHanld.setJasperExport(new JasperExportByPdf());
-		jasperExportHanld.setJasperDate(new JasperSourceDataByEntity(dataSource));
-		jasperExportHanld.start();
+		/*
+		 * jasperExportHanld.setName(name); jasperExportHanld.setRequest(request);
+		 * jasperExportHanld.setResponse(response);
+		 * jasperExportHanld.setJasperExport(new JasperExportByPdf());
+		 * jasperExportHanld.setJasperDate(new JasperSourceDataByEntity(dataSource));
+		 * jasperExportHanld.start();
+		 */
 
 	}
 
@@ -102,12 +100,13 @@ public class TestController {
 	public void ddtest(HttpServletRequest request, HttpServletResponse response, String name)
 			throws JRException, SQLException {
 		Connection ob = sqlSession.getConfiguration().getEnvironment().getDataSource().getConnection();
-		jasperExportHanld.setName(name); // 文件名称
-		jasperExportHanld.setRequest(request);
-		jasperExportHanld.setResponse(response);
-		jasperExportHanld.setJasperDate(new JasperSourceDataByJdbc(ob));// 读取数据方式
-		jasperExportHanld.setJasperExport(new JasperExportByPdf());// 展示数据方式
-		jasperExportHanld.start();
+		/*
+		 * jasperExportHanld.setName(name); // 文件名称
+		 * jasperExportHanld.setRequest(request);
+		 * jasperExportHanld.setResponse(response); jasperExportHanld.setJasperDate(new
+		 * JasperSourceDataByJdbc(ob));// 读取数据方式 jasperExportHanld.setJasperExport(new
+		 * JasperExportByPdf());// 展示数据方式 jasperExportHanld.start();
+		 */
 	}
 
 	@GetMapping("htmlpagedata1")
@@ -123,12 +122,14 @@ public class TestController {
 		//
 		List<User> u = userMapper.getUsers(parameters);
 		JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(u);
-		jasperExportHanld.setName(name); // 文件名称
-		jasperExportHanld.setRequest(request);
-		jasperExportHanld.setResponse(response);
-		jasperExportHanld.setJasperDate(new JasperSourceDataByEntity(dataSource));// 读取数据方式
-		jasperExportHanld.setJasperExport(new JasperExportByHtml());// 展示数据方式
-		jasperExportHanld.start();
+		/*
+		 * jasperExportHanld.setName(name); // 文件名称
+		 * jasperExportHanld.setRequest(request);
+		 * jasperExportHanld.setResponse(response); jasperExportHanld.setJasperDate(new
+		 * JasperSourceDataByEntity(dataSource));// 读取数据方式
+		 * jasperExportHanld.setJasperExport(new JasperExportByHtml());// 展示数据方式
+		 * jasperExportHanld.start();
+		 */
 
 	}
 
@@ -136,7 +137,7 @@ public class TestController {
 	public void dd(HttpServletRequest request, HttpServletResponse response, HttpSession session,String name) {
 		//JasperChangeParamsHanld jcph=(JasperChangeParamsHanld) jasperExportHanld;
 		System.out.println("123");
-		JasperExportHanld jasperExportHanld=new JasperChangeParamsHanld();
+		jasperExportHanld=new JasperHtmlDynamic();
 		
 		Connection ob = null;
 		try {
@@ -146,9 +147,9 @@ public class TestController {
 			jasperExportHanld.setRequest(request);
 			jasperExportHanld.setResponse(response);
 			jasperExportHanld.setSession(session);
-			jasperExportHanld.setJasperDate(new JasperSourceDataByJdbc(ob));// 读取数据方式
-			jasperExportHanld.setJasperExport(new JasperExportByHtml());// 展示数据方式
-			jasperExportHanld.start();
+			jasperExportHanld.setOb(ob);
+			jasperExportHanld.setExportLoding(new ExportLodingPdf());
+			jasperExportHanld.Start();
 			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
