@@ -27,6 +27,7 @@ import jasper.mapper.UserMapper;
 import jasper.scorrtUtil.JasperScorrt.JasperHanld;
 import jasper.scorrtUtil.JasperScorrt.JasperHtmlDynamic;
 import jasper.scorrtUtil.JasperScorrt.caChe.Cache;
+import jasper.scorrtUtil.JasperScorrt.export.impl.ExportLodingHtml;
 import jasper.scorrtUtil.JasperScorrt.export.impl.ExportLodingPdf;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JROrigin;
@@ -148,7 +149,7 @@ public class TestController {
 			jasperExportHanld.setResponse(response);
 			jasperExportHanld.setSession(session);
 			jasperExportHanld.setOb(ob);
-			jasperExportHanld.setExportLoding(new ExportLodingPdf());
+			jasperExportHanld.setExportLoding(new ExportLodingHtml());
 			jasperExportHanld.Start();
 			
 		} catch (SQLException e) {

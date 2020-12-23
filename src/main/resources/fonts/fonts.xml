@@ -12,4 +12,10 @@
             <export key="net.sf.jasperreports.xhtml">'华文宋体', Arial, Helvetica, sans-serif</export>
         </exportFonts>
     </fontFamily>
+    <!-- <fontFamily name="Yves-雅黑">
+        <normal><![CDATA[fonts/Yves_雅黑/msyh001.ttf]]></normal>
+        <pdfEncoding><![CDATA[Identity-H]]></pdfEncoding>
+        <pdfEmbedded><![CDATA[true]]></pdfEmbedded>
+        <exportFonts/>
+    </fontFamily> -->
 </fontFamilies>
