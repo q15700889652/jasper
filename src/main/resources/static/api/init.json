@@ -205,13 +205,13 @@
       "child": [
         {
           "title": "数据源组件",
-          "href": "page/icon.html",
+          "href": "page/jdbcform.html",
           "icon": "fa fa-dot-circle-o",
           "target": "_self"
         },
         {
           "title": "条件组件",
-          "href": "page/icon-picker.html",
+          "href": "page/jdbctable.html",
           "icon": "fa fa-adn",
           "target": "_self"
         },

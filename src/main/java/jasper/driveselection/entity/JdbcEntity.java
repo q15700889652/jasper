@@ -1,4 +1,4 @@
-package jasper.entity;
+package jasper.driveselection.entity;
 
 import java.io.Serializable;
 
@@ -18,9 +18,25 @@ public class JdbcEntity implements Serializable {
 	
 	private String url="4";
 	
-	private String userName="5";
+	private String userName="sa";
 	
-	private String passWard="6";
+	private String passWard="123456";
+	
+	private String remarks;
+	
+	
+	
+	public String getRemarks() {
+		return remarks;
+	}
+
+	public void setRemarks(String remarks) {
+		this.remarks = remarks;
+	}
+
+	public static long getSerialversionuid() {
+		return serialVersionUID;
+	}
 
 	public String getDriver() {
 		return driver;

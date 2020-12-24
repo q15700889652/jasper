@@ -1,9 +1,10 @@
-package jasper.controller;
+package jasper.driveselection;
 
 import java.io.IOException;
-import java.sql.Connection;
 
-import jasper.entity.JdbcEntity;
+import jasper.driveselection.Cache.JdbcCache;
+import jasper.driveselection.impl.DriveSelectionImpl;
+import jasper.driveselection.entity.JdbcEntity;
 
 public class test {
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
@@ -17,7 +18,7 @@ public class test {
 		
 		JdbcCache.removeCache();
 		 // jdk动态代理测试
-        Sjdbc sjdbc = new JDKDynamicProxy(new connection()).getProxy();
+        DriveSelection sjdbc = new JDKDynamicProxy(new DriveSelectionImpl()).getProxy();
 		
 		// 测试连接
 		System.out.println(sjdbc.testConnection(je));

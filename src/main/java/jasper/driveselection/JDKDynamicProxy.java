@@ -1,14 +1,14 @@
-package jasper.controller;
+package jasper.driveselection;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 /**
- * JDKDynamicProxy
- * jdkd动态代理
+ * 当序列化的时候进行代理,执行之前执行读取,执行完之后进行写入
+ * jdkd动态代理              
  *
- * @author
+ * @author Scorrt
  * @create 2018-03-29 16:17
  **/
 public class JDKDynamicProxy implements InvocationHandler {
@@ -24,15 +24,16 @@ public class JDKDynamicProxy implements InvocationHandler {
      * @param <T>
      * @return
      */
-    public <T> T getProxy() {
+    @SuppressWarnings("unchecked")
+	public <T> T getProxy() {
         return (T) Proxy.newProxyInstance(target.getClass().getClassLoader(), target.getClass().getInterfaces(), this);
     }
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-    	xuliehua.readDisk();
+    	Serialize.readDisk();
         Object result = method.invoke(target, args);
-        xuliehua.writeDisk();
+        Serialize.writeDisk();
         return result;
     }
 }
