@@ -14,12 +14,13 @@ import jasper.driveselection.entity.JdbcEntity;
 
 public class DriveSelectionImpl implements DriveSelection{
 
-	private static boolean flag = true;
+	private  boolean flag = true;
 
 	// 增加数据源
 	 public boolean add(String key, JdbcEntity je) throws IOException {
 		 System.out.println("add");
 		 JdbcCache.jdbcHashMap.put(key, je);
+		 flag = true;
 		 return flag;
 	}
 
@@ -27,6 +28,7 @@ public class DriveSelectionImpl implements DriveSelection{
 	 public boolean remove(String key) throws IOException {
 		 System.out.println("remove");
 		 JdbcCache.jdbcHashMap.remove(key);
+		 flag = true;
 		 return flag;
 	}
 
@@ -40,7 +42,6 @@ public class DriveSelectionImpl implements DriveSelection{
 
 	// 查询
 	 public HashMap<String, Object> query(String key) throws ClassNotFoundException, IOException {
-		 
 		 return Serialize.obj3;
 	}
 
@@ -52,6 +53,7 @@ public class DriveSelectionImpl implements DriveSelection{
 		try {
 			Class.forName(je.getDriver());
 			Connection conn = DriverManager.getConnection(je.getUrl(), je.getUserName(), je.getPassWard());
+			flag=true;
 		} catch (Exception e) {
 			flag = false;
 			e.printStackTrace();

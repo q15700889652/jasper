@@ -19,27 +19,9 @@
                 <form class="layui-form layui-form-pane" action="">
                     <div class="layui-form-item">
                         <div class="layui-inline">
-                            <label class="layui-form-label">用户姓名</label>
+                            <label class="layui-form-label">名称</label>
                             <div class="layui-input-inline">
-                                <input type="text" name="username" autocomplete="off" class="layui-input">
-                            </div>
-                        </div>
-                        <div class="layui-inline">
-                            <label class="layui-form-label">用户性别</label>
-                            <div class="layui-input-inline">
-                                <input type="text" name="sex" autocomplete="off" class="layui-input">
-                            </div>
-                        </div>
-                        <div class="layui-inline">
-                            <label class="layui-form-label">用户城市</label>
-                            <div class="layui-input-inline">
-                                <input type="text" name="city" autocomplete="off" class="layui-input">
-                            </div>
-                        </div>
-                        <div class="layui-inline">
-                            <label class="layui-form-label">用户职业</label>
-                            <div class="layui-input-inline">
-                                <input type="text" name="classify" autocomplete="off" class="layui-input">
+                                <input type="text" name="key" autocomplete="off" class="layui-input">
                             </div>
                         </div>
                         <div class="layui-inline">
@@ -77,6 +59,8 @@
             elem: '#currentTableId',
             //url: '../api/table.json',
             url: '/query',
+            even:true,
+            skin: 'row',
             toolbar: '#toolbarDemo',
             defaultToolbar: ['filter', 'exports', 'print', {
                 title: '提示',
@@ -88,9 +72,9 @@
                 {field: 'remarks', width: 120, title: '名称'},
                 {field: 'host', width: 120, title: '地址'},
                 {field: 'post', width: 120, title: '端口'},
-                {field: 'userName', title: '账号', minWidth: 150},
-                {field: 'passWard', width: 80, title: '密码', sort: true},
-                {field: 'driver', width: 200, title: '驱动', sort: true},
+                {field: 'userName',width: 120, title: '账号'},
+                {field: 'passWard', width: 120, title: '密码', sort: true},
+                {field: 'driver', width: 300, title: '驱动', sort: true},
                 {field: 'url', width: 300, title: '路径'},
                 {title: '操作', minWidth: 150, toolbar: '#currentTableBar', align: "center"}
             ]],
@@ -103,17 +87,17 @@
         // 监听搜索操作
         form.on('submit(data-search-btn)', function (data) {
             var result = JSON.stringify(data.field);
-            layer.alert(result, {
+           /*  layer.alert(result, {
                 title: '最终的搜索信息'
-            });
-
+            }); */
             //执行搜索重载
             table.reload('currentTableId', {
                 page: {
                     curr: 1
                 }
                 , where: {
-                    searchParams: result
+                    searchParams: result,
+                    key:data.field.key
                 }
             }, 'data');
 
@@ -132,7 +116,7 @@
                     maxmin:true,
                     shadeClose: true,
                     area: ['100%', '100%'],
-                    content: '../page/table/add.html',
+                    content: '../page/table/jdbc/add.html',
                 });
                 $(window).on("resize", function () {
                     layer.full(index);
@@ -140,7 +124,34 @@
             } else if (obj.event === 'delete') {  // 监听删除操作
                 var checkStatus = table.checkStatus('currentTableId')
                     , data = checkStatus.data;
-                layer.alert(JSON.stringify(data));
+
+				var key="";
+                for (var i=0;i<data.length;i++)
+                {
+                    key+=data[i].remarks+","
+                }
+
+       			
+	                 $.ajax({  
+	                 type: 'get',  
+	                 url: '/remove', // ajax请求路径  
+	                 data: {
+	                     "key":key
+	                     },
+	                 success: function(data){ 
+	                   if(data==true){
+	                      layer.msg('删除成功');
+	                      // 关闭弹出层
+	                      var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+	                      parent.location.reload();//刷新父页面，注意一定要在关闭当前iframe层之前执行刷新
+	                      parent.layer.close(index); //再执行关闭
+						
+	                   }else{
+	                     layer.msg('删除失败');
+	                   }
+	                 }  
+	             });
+                //layer.alert(JSON.stringify(data));
             }
         });
 
