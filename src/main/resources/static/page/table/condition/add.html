@@ -87,7 +87,7 @@
         form.on('submit(saveBtn)', function (data) {
         	 $.ajax({  
                  type: 'post',  
-                 url: '/driver/add', // ajax请求路径  
+                 url: '/condition/add', // ajax请求路径  
                  data: data.field,  
                  success: function(data){ 
                    if(data==true){
@@ -124,7 +124,7 @@
 
         	 $.ajax({  
                  type: 'post',  
-                 url: '/driver/test', // ajax请求路径  
+                 url: '/condition/test', // ajax请求路径  
                  data: data.field,  
                  success: function(data){ 
                    if(data==true){

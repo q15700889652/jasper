@@ -63,7 +63,7 @@
         table.render({
             elem: '#currentTableId',
             //url: '../api/table.json',
-            url: '/driver/query',
+            url: '/condition/query',
             even:true,
             skin:'row',
             toolbar: '#toolbarDemo',
@@ -121,7 +121,7 @@
                     maxmin:true,
                     shadeClose: true,
                     area: ['100%', '100%'],
-                    content: '../page/table/jdbc/add.html',
+                    content: '../page/table/condition/add.html',
                 });
                 $(window).on("resize", function () {
                     layer.full(index);
@@ -139,7 +139,7 @@
        			
 	                 $.ajax({  
 	                 type: 'get',  
-	                 url: '/driver/remove', // ajax请求路径  
+	                 url: '/condition/remove', // ajax请求路径  
 	                 data: {
 	                     "key":key
 	                     },
@@ -189,7 +189,7 @@
             }else if(obj.event === 'test'){
             	 $.ajax({  
                      type: 'post',  
-                     url: '/test', // ajax请求路径  
+                     url: '/condition/test', // ajax请求路径  
                      data: data,  
                      success: function(data){ 
                        if(data==true){

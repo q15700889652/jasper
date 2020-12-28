@@ -17,31 +17,32 @@ import jasper.driveselection.DriveSelection;
 import jasper.driveselection.JDKDynamicProxy;
 import jasper.driveselection.entity.JdbcEntity;
 import jasper.driveselection.impl.DriveSelectionImpl;
+import jasper.entity.ConditionEntity;
 
 @RestController
-@RequestMapping("driver")
-public class DriveController {
+@RequestMapping("condition")
+public class ConditionController {
 
-	Logger logger = Logger.getLogger(DriveController.class);
+	Logger logger = Logger.getLogger(ConditionController.class);
 	DriveSelection driveSelection = new JDKDynamicProxy(new DriveSelectionImpl()).getProxy();//代理
 
 	@PostMapping("add")
 	public boolean add(JdbcEntity je, String key) throws IOException {
-		return driveSelection.add(key, je,JdbcEntity.class);
+		return driveSelection.add(key, je,ConditionEntity.class);
 	}
 
 	@GetMapping("remove")
 	public boolean remove(String key) throws IOException {
 		String[] keys = key.split(",");
 		for (int i = 0; i < keys.length; i++) {
-			driveSelection.remove(keys[i],JdbcEntity.class);
+			driveSelection.remove(keys[i],ConditionEntity.class);
 		}
 		return true;
 	}
 
 	@GetMapping("update")
 	public boolean update(JdbcEntity je, String oldkey, String newkey) throws IOException {
-		return driveSelection.update(oldkey, newkey, je,JdbcEntity.class);
+		return driveSelection.update(oldkey, newkey, je,ConditionEntity.class);
 	}
 
 	@GetMapping("query")
@@ -49,7 +50,7 @@ public class DriveController {
 		HashMap<String, Object> map = new HashMap<String, Object>();
 
 		List<JdbcEntity> list = new ArrayList<JdbcEntity>();
-		HashMap<String, Object> querymap = driveSelection.query(key,JdbcEntity.class);
+		HashMap<String, Object> querymap = driveSelection.query(key,ConditionEntity.class);
 		if (key != null && key.length() > 0) {
 			if (querymap.get(key) != null) {
 				((JdbcEntity) querymap.get(key)).setRemarks(key);
@@ -70,8 +71,4 @@ public class DriveController {
 		return map;
 	}
 
-	@PostMapping("test")
-	public boolean test(JdbcEntity je) throws IOException, ClassNotFoundException {
-		return driveSelection.testConnection(je,JdbcEntity.class);
-	}
 }

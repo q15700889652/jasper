@@ -4,10 +4,12 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
+import jasper.driveselection.Cache.JdbcCache;
+
 /**
- * 当序列化的时候进行代理,执行之前执行读取,执行完之后进行写入
- * jdkd动态代理              
- *
+ * 动态代理   
+ * 当序列化的时候进行代理,Before执行之前执行读取                    After执行完之后进行写入
+ * 写入+读取   对不同模块的key进行加工
  * @author Scorrt
  * @create 2018-03-29 16:17
  **/
@@ -31,8 +33,13 @@ public class JDKDynamicProxy implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    	//key值加工
+    	System.out.println("add...delete...update...query..."+args[args.length-1]);
+    	JdbcCache.entityname=args[args.length-1].toString();
+    	//读取
     	Serialize.readDisk();
         Object result = method.invoke(target, args);
+        //写入
         Serialize.writeDisk();
         return result;
     }

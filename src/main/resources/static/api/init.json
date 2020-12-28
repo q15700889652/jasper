@@ -204,20 +204,14 @@
       "target": "_self",
       "child": [
         {
-          "title": "图形组件",
-          "href": "page/jdbcform.html",
-          "icon": "fa fa-dot-circle-o",
-          "target": "_self"
-        },
-        {
           "title": "数据源组件",
           "href": "page/jdbctable.html",
           "icon": "fa fa-adn",
           "target": "_self"
         },
         {
-          "title": "图片组件",
-          "href": "page/color-select.html",
+          "title": "条件组件",
+          "href": "page/conditiontable.html",
           "icon": "fa fa-dashboard",
           "target": "_self"
         }
