@@ -28,7 +28,6 @@ public class Serialize {
 		out.close();
 
 	}
-
 	@SuppressWarnings("unchecked")
 	static void readDisk() throws IOException, ClassNotFoundException {
 		File file = new File(SERIALIZE_ADDRESS);

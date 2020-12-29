@@ -23,55 +23,21 @@
            <!--  <tip>填写自己管理账号的名称。</tip> -->
         </div>
     </div>
-	<div class="layui-form-item">
-        <label class="layui-form-label">驱动</label>
-                <div class="layui-input-inline">
-                    <select name="driver" lay-filter="aihao">
-                        <option value="0">mysql</option>
-                        <option value="com.microsoft.sqlserver.jdbc.SQLServerDriver" selected="">sqlserver</option>
-                    </select>
-                </div>
-    </div>
     <div class="layui-form-item">
-        <label class="layui-form-label required">地址</label>
+        <label class="layui-form-label required">属性</label>
         <div class="layui-input-block">
-            <input type="text" name="host" lay-verify="required" lay-reqtext="地址不能为空" placeholder="请输入地址" value="" class="layui-input">
+            <input type="text" name="name" lay-verify="required" lay-reqtext="地址不能为空" placeholder="请输入地址" value="" class="layui-input">
         </div>
     </div>
     <div class="layui-form-item">
-        <label class="layui-form-label required">端口</label>
+        <label class="layui-form-label required">类型</label>
         <div class="layui-input-block">
-            <input type="text" name="post" lay-verify="required" lay-reqtext="端口不能为空" placeholder="请输入端口" value="" class="layui-input">
+            <input type="text" name="type" lay-verify="required" lay-reqtext="端口不能为空" placeholder="请输入端口" value="" class="layui-input">
 <!--             <tip>填写自己管理账号的名称。</tip>
  -->        </div>
     </div>
-     <div class="layui-form-item">
-        <label class="layui-form-label required">实例名称</label>
-        <div class="layui-input-inline">
-            <input type="text" name="dateBase" lay-verify="required" lay-reqtext="实例名称不能为空" placeholder="请输入实例名称" value="" class="layui-input">
-<!--             <tip>填写自己管理账号的名称。</tip>
- -->        </div>
-    </div>
-     <div class="layui-form-item">
-        <label class="layui-form-label">url</label>
-        <div class="layui-input-block">
-            <input type="text" name="url"   value="" class="layui-input">
-        </div>
-    </div>
-    <div class="layui-form-item">
-        <label class="layui-form-label required">账号</label>
-        <div class="layui-input-inline">
-            <input type="text" name="userName" lay-verify="required" lay-reqtext="用户账号不能为空" placeholder="请输入用户账号" value="" class="layui-input">
-        </div>
-    
-        <label class="layui-form-label required">密码</label>
-        <div class="layui-input-inline">
-            <input type="text" name="passWard" lay-verify="required" lay-reqtext="用户密码不能为空" placeholder="请输入用户密码" value="" class="layui-input">
-        </div>
-    </div>
     <div class="layui-form-item">
         <div class="layui-input-block">
-            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="testBtn">测试连接</button>
             <button class="layui-btn layui-btn-normal" lay-submit lay-filter="saveBtn">确认保存</button>
         </div>
     </div>

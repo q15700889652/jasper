@@ -1,6 +1,13 @@
 package jasper.entity;
 
-public class ConditionEntity {
+import java.io.Serializable;
+
+public class ConditionEntity implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
 	private String name;
 	private String type;
 	private String remarks;

@@ -27,7 +27,7 @@ public class ConditionController {
 	DriveSelection driveSelection = new JDKDynamicProxy(new DriveSelectionImpl()).getProxy();//代理
 
 	@PostMapping("add")
-	public boolean add(JdbcEntity je, String key) throws IOException {
+	public boolean add(ConditionEntity je, String key) throws IOException {
 		return driveSelection.add(key, je,ConditionEntity.class);
 	}
 
@@ -41,7 +41,7 @@ public class ConditionController {
 	}
 
 	@GetMapping("update")
-	public boolean update(JdbcEntity je, String oldkey, String newkey) throws IOException {
+	public boolean update(ConditionEntity je, String oldkey, String newkey) throws IOException {
 		return driveSelection.update(oldkey, newkey, je,ConditionEntity.class);
 	}
 
@@ -49,17 +49,17 @@ public class ConditionController {
 	public HashMap<String, Object> query(String key) throws IOException, ClassNotFoundException {
 		HashMap<String, Object> map = new HashMap<String, Object>();
 
-		List<JdbcEntity> list = new ArrayList<JdbcEntity>();
+		List<ConditionEntity> list = new ArrayList<ConditionEntity>();
 		HashMap<String, Object> querymap = driveSelection.query(key,ConditionEntity.class);
 		if (key != null && key.length() > 0) {
 			if (querymap.get(key) != null) {
-				((JdbcEntity) querymap.get(key)).setRemarks(key);
-				list.add((JdbcEntity) querymap.get(key));
+				((ConditionEntity) querymap.get(key)).setRemarks(key);
+				list.add((ConditionEntity) querymap.get(key));
 			}
 		} else {
 			for (Entry<String, Object> e : querymap.entrySet()) {
-				((JdbcEntity) e.getValue()).setRemarks(e.getKey());
-				list.add((JdbcEntity) e.getValue());
+				((ConditionEntity) e.getValue()).setRemarks(e.getKey());
+				list.add((ConditionEntity) e.getValue());
 			}
 
 		}
